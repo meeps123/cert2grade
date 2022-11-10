@@ -1,3 +1,8 @@
 *.png
 *.code-workspace
 *.txt
+*.lnk
+pretrained_model/
+PaddleOCR/
+data/
+output/
