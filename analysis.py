@@ -45,11 +45,14 @@ def nlvl(full_ocr_result, first_page_merged_text):
     # Find out whether this person mistakenly submitted the RESULT SLIP instead of the correct N-Level certificate
     result_slip_search = regex.search(r'(result\s*slip){e<=1}', first_page_merged_text)
     if result_slip_search is None:
-        # Confirm that it is a N-Level certificate
-        if regex.search(r'(this\s*certifies\s*that){e<=3}', first_page_merged_text) is not None:
-            # Yes, it is a N-Level certificate.
-            hsp_criteria_pattern_cert = r'(graded\s*d\s*or\sbetter\:\s*(\w+)){e<=3}'
-            hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
+        # It is an N-Level certificate
+        hsp_criteria_pattern_cert = r'(graded\s*6\s*or\sbetter\:\s*(\w+)){e<=3}'
+        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
+        if hsp_criteria_search_cert is None:
+            # Couldn't detect
+            output['criteria_passed'] = 'UNSURE'
+            output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+        else:
             num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
             if num_pass_subjects_cert is None:
                 # Couldn't detect
@@ -59,24 +62,78 @@ def nlvl(full_ocr_result, first_page_merged_text):
                 output['criteria_passed'] = 'PASSED'
             else:
                 output['criteria_passed'] = 'FAILED' 
-            return output
     else:
         # The person likely mistakenly submitted a result slip
         output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
         # Check using a separate method for the result slip
-        hsp_criteria_pattern_slip = r'(graded\s*5\s*or\sbetter\:\s*(\W+)){e<=3}'
+        hsp_criteria_pattern_slip = r'(graded\s*5\s*or\sbetter\:\s*(\d+)){e<=3}'
         hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
-        num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
-        if num_pass_subjects_slip is None:
+        if hsp_criteria_search_slip is None:
             # Couldn't detect
             output['criteria_passed'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
-        elif num_pass_subjects_slip >= 1:
-            output['criteria_passed'] = 'PASSED'
         else:
-            output['criteria_passed'] = 'FAILED' 
-        return output
+            num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
+            if num_pass_subjects_slip is None:
+                # Couldn't detect
+                output['criteria_passed'] = 'UNSURE'
+                output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+            elif num_pass_subjects_slip >= 1:
+                output['criteria_passed'] = 'PASSED'
+            else:
+                output['criteria_passed'] = 'FAILED' 
+    return output
         
 # ---------------------------------------------------------------------------- #
 #                          Analyze O-Level Certificate                         #
 # ---------------------------------------------------------------------------- #
+
+def olvl(full_ocr_result, first_page_merged_text):
+    output = {
+        'hsp': 'O-Level & Below',
+        'criteria_passed': '',
+        'specific_doc_class': 'Ordinary Level',
+        'remarks': ''
+    }
+
+    # Find out whether this person mistakenly submitted the RESULT SLIP instead of the correct O-Level certificate
+    result_slip_search = regex.search(r'(result\s*slip){e<=1}', first_page_merged_text)
+    if result_slip_search is None:
+        # It is an O-Level certificate
+        hsp_criteria_pattern_cert = r'(graded\s*6\s*or\sbetter\:\s*(\w+)){e<=3}'
+        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
+        if hsp_criteria_search_cert is None:
+            # Couldn't detect
+            output['criteria_passed'] = 'UNSURE'
+            output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+        else:
+            num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
+            if num_pass_subjects_cert is None:
+                # Couldn't detect
+                output['criteria_passed'] = 'UNSURE'
+                output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+            elif num_pass_subjects_cert >= 1:
+                output['criteria_passed'] = 'PASSED'
+            else:
+                output['criteria_passed'] = 'FAILED' 
+    else:
+        # The person likely mistakenly submitted a result slip
+        output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
+        # Check using a separate method for the result slip
+        hsp_criteria_pattern_slip = r'(graded\s*6\s*or\sbetter\:\s*(\d+)){e<=3}'
+        hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
+        if hsp_criteria_search_slip is None:
+            # Couldn't detect
+            output['criteria_passed'] = 'UNSURE'
+            output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+        else:
+            num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
+            if num_pass_subjects_slip is None:
+                # Couldn't detect
+                output['criteria_passed'] = 'UNSURE'
+                output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
+            elif num_pass_subjects_slip >= 1:
+                output['criteria_passed'] = 'PASSED'
+            else:
+                output['criteria_passed'] = 'FAILED' 
+    return output
