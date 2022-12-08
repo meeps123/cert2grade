@@ -5,3 +5,4 @@ pretrained_model/
 PaddleOCR/
 data/
 output/
+__pycache__/
