@@ -402,10 +402,68 @@ def alvl(full_ocr_result):
                 subject_list.remove(match) 
                 continue
 
-    # TODO: Extraction of PW in the future
+    # TODO: Extraction of PW in the future. Assume PW cert is appended to main cert.
+    # For now, we will assume Proj Work is A.
+    if subjects[-1]['name'] != '':
+        subjects.append({'name': 'project work', 'level': 1, 'grade': 'a'})
+    else:
+        subjects[-1] = {'name': 'project work', 'level': 1, 'grade': 'a'}
 
-    
+    # Direct implementation of flowchart logic
+    num_h1 = sum([1 for subj in subjects if subj['level'] == 1]) + 1 # Due to PW assumption
+    num_h2 = sum([1 for subj in subjects if subj['level'] == 2])
+    took_gp = 'general paper' in [subj['name'] for subj in subjects]
 
+    if took_gp:
+        for subj in subjects:
+            if subj['name'] == 'general paper':
+                passed_gp = subj['grade'] in 'abcd'
+        if passed_gp:
+            if num_h1 >= 2:
+                if num_h2 >= 2:
+                    output['hsp'] = 'Full A-Level'
+                    output['status'] = 'PASSED'
+                elif num_h2 == 1:
+                    output['hsp'] = 'Partial A-Level'
+                    output['status'] = 'PASSED'
+                else: # num_h2 is 0
+                    output['hsp'] = 'Partial A-Level'
+                    output['status'] = 'FAILED'
+            else: # num_h1 is 0 or 1
+                if num_h2 >= 1:
+                    output['hsp'] = 'Partial A-Level'
+                    output['status'] = 'PASSED'
+                else:
+                    output['hsp'] = 'Partial A-Level'
+                    output['status'] = 'FAILED'
+        else: # fail GP
+            if num_h2 >= 1:
+                output['hsp'] = 'Partial A-Level'
+                output['status'] = 'PASSED'
+            else: # num_h2 is 0
+                output['hsp'] = 'Partial A-Level'
+                output['status'] = 'FAILED'
+    elif 'knowledge and inquiry' in [subj['name'] for subj in subjects]: 
+        # might have taken KI, we double confirm
+        for subj in subjects:
+            if subj['name'] == 'knowledge and inquiry':
+                passed_ki = subj['grade'] in 'abcd'
+        if passed_ki:
+            if num_h2 >= 2:
+                output['hsp'] = 'Full A-Level'
+                output['hsp'] = 'PASSED'
+            else: # num_h2 is only 1 as it is KI
+                output['hsp'] = 'Partial A-Level'
+                output['hsp'] = 'PASSED'
+        else: # failed KI
+            if num_h2 == 1:
+                output['hsp'] = 'Partial A-Level'
+                output['hsp'] = 'PASSED'
+            elif num_h2 == 0:
+                output['hsp'] = 'Partial A-Level'
+                output['hsp'] = 'FAILED'
+    output['score'] = utils.calculate_rank_points(subjects)
+    return output
 # ---------------------------------------------------------------------------- #
 #                      Analyze International Baccalaureate                     #
 # ---------------------------------------------------------------------------- #

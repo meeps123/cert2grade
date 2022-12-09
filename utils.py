@@ -55,6 +55,36 @@ essentials of modern physics
 def alvl_subject_list():
     return deepcopy(A_LVL_SUBJECTS)
 
+GRADE_TO_H1RP = {
+    'a': 10,
+    'b': 8.75,
+    'c': 7.5,
+    'd': 6.25,
+    'e': 5,
+    's': 2.5,
+    'u': 0
+}
+
+def calculate_rank_points(subjects):
+    h1_subjs = [subj for subj in subjects if subj['level'] == 1]
+    h1_subjs.sort(key=lambda x: x['grade'])
+    h2_subjs = [subj for subj in subjects if subj['level'] == 2]
+    h2_subjs.sort(key=lambda x: x['grade'])
+
+    if len(h2_subjs) == 4: # 4H2 2H1 case, treat weakest H2 as a H1
+        h2_subjs[-1]['level'] = 1
+        h1_subjs.append(h2_subjs[-1]) # Move to h1 array
+        del h2_subjs[-1]
+
+    rp = 0.0
+
+    for h1 in h1_subjs:
+        rp += GRADE_TO_H1RP[h1['grade']]
+    for h2 in h2_subjs:
+        rp += GRADE_TO_H1RP[h2['grade']]*2
+    
+    return rp
+
 def match_in_subject_list(subj_list, candidate):
     if candidate == '' or regex.search(r'\w', candidate) is None:
         return None
@@ -71,3 +101,4 @@ def word2num(word):
     for i, reference in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']):
         indices[i] = editdistance.eval(word, reference)
     return np.argmin(indices)
+
