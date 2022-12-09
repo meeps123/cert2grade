@@ -30,8 +30,8 @@ def nlvl(full_ocr_result, first_page_merged_text):
     output = {
         'hsp': 'O-Level & Below',
         'criteria_passed': '',
-        'specific_doc_class': '',
         'score': '',
+        'specific_doc_class': '',
         'remarks': ''
     }
 
@@ -94,8 +94,8 @@ def olvl(full_ocr_result, first_page_merged_text):
     output = {
         'hsp': 'O-Level & Below',
         'criteria_passed': '',
-        'specific_doc_class': 'Singapore-Cambridge General Certificate of Education Ordinary Level',
         'score': '',
+        'specific_doc_class': 'Singapore-Cambridge General Certificate of Education Ordinary Level',
         'remarks': ''
     }
 
@@ -149,8 +149,8 @@ def nitec(full_ocr_result, higher_nitec=False):
     output = {
         'hsp': 'Higher NITEC' if higher_nitec else 'NITEC',
         'criteria_passed': '',
-        'specific_doc_class': '',
         'score': '',
+        'specific_doc_class': 'Higher National ITE Certificate' if higher_nitec else 'National ITE Certificate',
         'remarks': ''
     }
 
@@ -166,16 +166,22 @@ def nitec(full_ocr_result, higher_nitec=False):
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
         output['criteria_passed'] = 'UNSURE'
-        output['specific_doc_class'] = 'Higher National ITE Certificate' if higher_nitec else 'National ITE Certificate' 
         output['remarks'] = 'ITE Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
 
     # Extract GPA
-    gpa_search = regex.search(r'(point\s*average\:\s*([\d\.]+)\s*result\:\s*awarded\s*the\s*national){e<=5}', full_pdf_text)
+    gpa_search = regex.search(r'(point\s*average\:\s*([\d\.]+)\s*result\:\s*awarded){e<=5}', full_pdf_text)
     if gpa_search is None:
-        # Couldn't detect
-        output['criteria_passed'] = 'UNSURE'
-        output['remarks'] = 'Unable to detect GPA in transcript, requires human intervention. Check that the full transcript was provided. '
+        # Couldn't detect using GPA, try to detect using the award confirmation
+        award_confirmation_search = regex.search(r'(awarded\s*the\s*higher\s*national\s*ite\s*certificate\s*in){e<=5}', full_pdf_text) if higher_nitec else regex.search(r'(awarded\s*the\s*\s*national\s*ite\s*certificate\s*in){e<=5}', full_pdf_text) 
+        if award_confirmation_search is None:
+            # Couldn't detect
+            output['criteria_passed'] = 'UNSURE'
+            output['remarks'] = 'Unable to detect GPA or NITEC Confirmation in transcript, requires human intervention. Check that the full transcript was provided. '
+        else:
+            # There was an award confirmation
+            output['criteria_passed'] = 'PASSED'
+            output['remarks'] = 'Unable to detect GPA in transcript, awarded PASSED based on NITEC Confirmation. '
     else:
         gpa = float(gpa_search.group(2))
         output['score'] = gpa
@@ -193,8 +199,8 @@ def poly(full_ocr_result, poly):
     output = {
         'hsp': 'Poly Diploma',
         'criteria_passed': '',
-        'specific_doc_class': '',
         'score': '',
+        'specific_doc_class': '',
         'remarks': ''
     }
 
@@ -254,7 +260,7 @@ def poly(full_ocr_result, poly):
         else:
             # There is an award confirmation
             output['criteria_passed'] = 'PASSED'
-            output['remarks'] = 'Unable to detect GPA, awarded PASSED basde on Diploma Confirmation. '
+            output['remarks'] = 'Unable to detect GPA, awarded PASSED based on Diploma Confirmation. '
     else:
         gpa = float(gpa_search.group(2))
         output['score'] = gpa
@@ -264,3 +270,52 @@ def poly(full_ocr_result, poly):
             output['criteria_passed'] = 'FAILED'
     return output
     
+# ---------------------------------------------------------------------------- #
+#                          Technical Engineer Diploma                          #
+# ---------------------------------------------------------------------------- #
+
+def ted(full_ocr_result):
+    output = {
+        'hsp': 'Poly Diploma',
+        'criteria_passed': '',
+        'score': '',
+        'specific_doc_class': 'Technical Engineer Diploma',
+        'remarks': ''
+    }
+
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
+    # Ensure that the person submitted the transcript and not some other document
+    transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
+    if transcript_confirm_search is None:
+        # This means the person didn't submit the transcript we wanted
+        output['criteria_passed'] = 'UNSURE'
+        output['remarks'] = 'TED Certificate/Some other document was submitted instead of the Academic Transcript. '
+        return output
+
+    # Extract GPA
+    gpa_search = regex.search(r'(point\s*average\:\s*([\d\.]+)\s*result\:\s*awarded){e<=5}', full_pdf_text)
+    if gpa_search is None:
+        # Couldn't detect using GPA, try to detect using the award confirmation
+        award_confirmation_search = regex.search(r'(awarded\s*the\s*technical\s*engineer\s*diploma\s*in){e<=3}', full_pdf_text)
+        if award_confirmation_search is None:
+            # Couldn't detect
+            output['criteria_passed'] = 'UNSURE'
+            output['remarks'] = 'Unable to detect GPA or TED Confirmation in transcript, requires human intervention. Check that the full transcript was provided. '
+        else:
+            # There is an award confirmation
+            output['criteria_passed'] = 'PASSED'
+            output['remarks'] = 'Unable to detect GPA, awarded PASSED based on TED Confirmation. '
+    else:
+        gpa = float(gpa_search.group(2))
+        output['score'] = gpa
+        if gpa >= 1:
+            output['criteria_passed'] = 'PASSED'
+        else:
+            output['criteria_passed'] = 'FAILED'
+    return output

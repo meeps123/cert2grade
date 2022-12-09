@@ -68,11 +68,11 @@ def churn(input_file):
         max_count_poly = max(poly_counts, key=poly_counts.get)
         return analysis.poly(full_ocr_result, poly=max_count_poly)
     elif max_count_category == 'ted':
-        print('ted')
+        return analysis.ted(full_ocr_result)
     elif max_count_category == 'alvl':
         print('alvl')
     elif max_count_category == 'ib':
-        print('ib')
+        return analysis.ib(full_ocr_result)
     elif max_count_category == 'nush':
         print('nush')
 
