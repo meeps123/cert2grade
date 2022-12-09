@@ -16,7 +16,7 @@ import editdistance
 def word2num(word):
     if regex.search(r'[a-z]+', word) is None:
         # there are no letters in there
-        return None``
+        return None
     indices = np.full((11), np.inf)
     for i, reference in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']):
         indices[i] = editdistance.eval(word, reference)
@@ -368,4 +368,44 @@ def ib(full_ocr_result):
         output['hsp'] = 'Full A-Level'
     else:
         output['hsp'] = 'Partial A-Level'
+    return output
+
+# ---------------------------------------------------------------------------- #
+#                           Analyze NUS High Diploma                           #
+# ---------------------------------------------------------------------------- #
+
+def nush(full_ocr_result):
+    output = {
+        'hsp': '', # Full A-Level or Partial A-Level
+        'status': 'PASSED', # Always PASSED for IB Case
+        'score': '',
+        'specific_doc_class': 'NUS High Diploma',
+        'remarks': ''
+    }
+
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
+    # Attempt extraction of CAP
+    cap_search = regex.search(r'(graduation\s*cap\s*with\s*mother\s*tongue\s*\:\s*([\d\.]+)){e<=4}', full_pdf_text)
+    if cap_search is None:
+        # Failed to find CAP
+        output['hsp'] = 'Partial A-Level'
+        output['status'] = 'UNSURE'
+        output['remarks'] = 'Unable to find Graduation CAP. Human intervention is required. '
+    else:
+        # Found CAP
+        cap = float(cap_search.group(2))
+        if cap > 10.0:
+            # The OCR likely didn't pick up the decimal point
+            cap /= 10.0
+        output['score'] = cap
+        if cap >= 2.5:
+            output['hsp'] = 'Full A-Level'
+        else:
+            output['hsp'] = 'Partial A-Level'
     return output
