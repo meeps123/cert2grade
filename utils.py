@@ -50,6 +50,7 @@ semiconductor physics & devices
 game theory
 proteomics
 essentials of modern physics
+linear algebra
 '''.split('\n')[1:]
 
 def alvl_subject_list():
