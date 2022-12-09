@@ -49,13 +49,14 @@ molecular biology
 semiconductor physics & devices
 game theory
 proteomics
+essentials of modern physics
 '''.split('\n')[1:]
 
 def alvl_subject_list():
     return deepcopy(A_LVL_SUBJECTS)
 
 def match_in_subject_list(subj_list, candidate):
-    if candidate == '':
+    if candidate == '' or regex.search(r'\w', candidate) is None:
         return None
     for subj in subj_list:
         if regex.search(r'(' + candidate + r'){e<=1}', subj) is not None:

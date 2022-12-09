@@ -354,7 +354,7 @@ def alvl(full_ocr_result):
         main_subj_string = regex.sub(r'\d\d+', '', main_subj_search.group(2))
         subjects = []
         subject_template = {'name':'','level':'','grade':''}
-        for i in range(7):
+        for i in range(6):
             subjects.append(deepcopy(subject_template))
         subject_counters = {
             'name': 0,
@@ -395,12 +395,16 @@ def alvl(full_ocr_result):
 
             match = utils.match_in_subject_list(subject_list, token)
             if match is not None:
+                if subject_counters['name'] > 5:
+                    continue
                 subjects[subject_counters['name']]['name'] = match
                 subject_counters['name'] += 1
                 subject_list.remove(match) 
                 continue
 
     # TODO: Extraction of PW in the future
+
+    
 
 # ---------------------------------------------------------------------------- #
 #                      Analyze International Baccalaureate                     #
