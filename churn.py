@@ -66,16 +66,7 @@ def churn(input_file):
             poly_pattern = '(' + polys[poly] + '){e<=1}'
             poly_counts[poly] = len(regex.findall(poly_pattern, first_page_merged_text))
         max_count_poly = max(poly_counts, key=poly_counts.get)
-        if max_count_poly == 'rp':
-            print('rp')
-        elif max_count_poly == 'np':
-            print('np')
-        elif max_count_poly == 'nyp':
-            print('nyp')
-        elif max_count_poly == 'tp':
-            print('tp')
-        elif max_count_poly == 'sp':
-            print('sp')
+        return analysis.poly(full_ocr_result, poly=max_count_poly)
     elif max_count_category == 'ted':
         print('ted')
     elif max_count_category == 'alvl':
