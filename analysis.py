@@ -7,7 +7,7 @@ import editdistance
 # ---------------------------------------------------------------------------- #
 '''
     hsp:                    The desired Highest Standard Passed Label
-    criteria_passed:        Whether the HSP Classification criteria was PASSED or FAILED
+    status:                 Whether the HSP Classification criteria was PASSED, FAILED, or algo is UNSURE
     specific_doc_class:     The specific educational qualification which the submitted document represents
     score:                  The numeric score specific to the educational qualification
     remarks:                Additional Remarks
@@ -16,7 +16,7 @@ import editdistance
 def word2num(word):
     if regex.search(r'[a-z]+', word) is None:
         # there are no letters in there
-        return None
+        return None``
     indices = np.full((11), np.inf)
     for i, reference in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']):
         indices[i] = editdistance.eval(word, reference)
@@ -29,7 +29,7 @@ def word2num(word):
 def nlvl(full_ocr_result, first_page_merged_text):
     output = {
         'hsp': 'O-Level & Below',
-        'criteria_passed': '',
+        'status': '',
         'score': '',
         'specific_doc_class': '',
         'remarks': ''
@@ -52,18 +52,18 @@ def nlvl(full_ocr_result, first_page_merged_text):
         hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
         if hsp_criteria_search_cert is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
             num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
             if num_pass_subjects_cert is None:
                 # Couldn't detect
-                output['criteria_passed'] = 'UNSURE'
+                output['status'] = 'UNSURE'
                 output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
             elif num_pass_subjects_cert >= 1:
-                output['criteria_passed'] = 'PASSED'
+                output['status'] = 'PASSED'
             else:
-                output['criteria_passed'] = 'FAILED' 
+                output['status'] = 'FAILED' 
     else:
         # The person likely mistakenly submitted a result slip
         output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
@@ -72,18 +72,18 @@ def nlvl(full_ocr_result, first_page_merged_text):
         hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
         if hsp_criteria_search_slip is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
             num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
             if num_pass_subjects_slip is None:
                 # Couldn't detect
-                output['criteria_passed'] = 'UNSURE'
+                output['status'] = 'UNSURE'
                 output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
             elif num_pass_subjects_slip >= 1:
-                output['criteria_passed'] = 'PASSED'
+                output['status'] = 'PASSED'
             else:
-                output['criteria_passed'] = 'FAILED' 
+                output['status'] = 'FAILED' 
     return output
         
 # ---------------------------------------------------------------------------- #
@@ -93,7 +93,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
 def olvl(full_ocr_result, first_page_merged_text):
     output = {
         'hsp': 'O-Level & Below',
-        'criteria_passed': '',
+        'status': '',
         'score': '',
         'specific_doc_class': 'Singapore-Cambridge General Certificate of Education Ordinary Level',
         'remarks': ''
@@ -107,18 +107,18 @@ def olvl(full_ocr_result, first_page_merged_text):
         hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
         if hsp_criteria_search_cert is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
             num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
             if num_pass_subjects_cert is None:
                 # Couldn't detect
-                output['criteria_passed'] = 'UNSURE'
+                output['status'] = 'UNSURE'
                 output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
             elif num_pass_subjects_cert >= 1:
-                output['criteria_passed'] = 'PASSED'
+                output['status'] = 'PASSED'
             else:
-                output['criteria_passed'] = 'FAILED' 
+                output['status'] = 'FAILED' 
     else:
         # The person likely mistakenly submitted a result slip
         output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
@@ -127,18 +127,18 @@ def olvl(full_ocr_result, first_page_merged_text):
         hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
         if hsp_criteria_search_slip is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
             num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
             if num_pass_subjects_slip is None:
                 # Couldn't detect
-                output['criteria_passed'] = 'UNSURE'
+                output['status'] = 'UNSURE'
                 output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
             elif num_pass_subjects_slip >= 1:
-                output['criteria_passed'] = 'PASSED'
+                output['status'] = 'PASSED'
             else:
-                output['criteria_passed'] = 'FAILED' 
+                output['status'] = 'FAILED' 
     return output
 
 # ---------------------------------------------------------------------------- #
@@ -148,7 +148,7 @@ def olvl(full_ocr_result, first_page_merged_text):
 def nitec(full_ocr_result, higher_nitec=False):
     output = {
         'hsp': 'Higher NITEC' if higher_nitec else 'NITEC',
-        'criteria_passed': '',
+        'status': '',
         'score': '',
         'specific_doc_class': 'Higher National ITE Certificate' if higher_nitec else 'National ITE Certificate',
         'remarks': ''
@@ -165,7 +165,7 @@ def nitec(full_ocr_result, higher_nitec=False):
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
-        output['criteria_passed'] = 'UNSURE'
+        output['status'] = 'UNSURE'
         output['remarks'] = 'ITE Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
 
@@ -176,19 +176,19 @@ def nitec(full_ocr_result, higher_nitec=False):
         award_confirmation_search = regex.search(r'(awarded\s*the\s*higher\s*national\s*ite\s*certificate\s*in){e<=5}', full_pdf_text) if higher_nitec else regex.search(r'(awarded\s*the\s*\s*national\s*ite\s*certificate\s*in){e<=5}', full_pdf_text) 
         if award_confirmation_search is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] = 'Unable to detect GPA or NITEC Confirmation in transcript, requires human intervention. Check that the full transcript was provided. '
         else:
             # There was an award confirmation
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
             output['remarks'] = 'Unable to detect GPA in transcript, awarded PASSED based on NITEC Confirmation. '
     else:
         gpa = float(gpa_search.group(2))
         output['score'] = gpa
         if gpa >= 1:
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
         else:
-            output['criteria_passed'] = 'FAILED'
+            output['status'] = 'FAILED'
     return output
 
 # ---------------------------------------------------------------------------- #
@@ -198,7 +198,7 @@ def nitec(full_ocr_result, higher_nitec=False):
 def poly(full_ocr_result, poly):
     output = {
         'hsp': 'Poly Diploma',
-        'criteria_passed': '',
+        'status': '',
         'score': '',
         'specific_doc_class': '',
         'remarks': ''
@@ -215,7 +215,7 @@ def poly(full_ocr_result, poly):
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
-        output['criteria_passed'] = 'UNSURE'
+        output['status'] = 'UNSURE'
         output['remarks'] = 'Poly Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
 
@@ -255,19 +255,19 @@ def poly(full_ocr_result, poly):
         award_confirmation_search = regex.search(poly_award_confirm_regexes[poly], full_pdf_text)
         if award_confirmation_search is None:
             # Also cannot detect the award confirmation
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] = 'Unable to detect GPA or Diploma Confirmation in transcript, requires human intervention. Check that the full transcript was provided. '
         else:
             # There is an award confirmation
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
             output['remarks'] = 'Unable to detect GPA, awarded PASSED based on Diploma Confirmation. '
     else:
         gpa = float(gpa_search.group(2))
         output['score'] = gpa
         if gpa >= 1:
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
         else:
-            output['criteria_passed'] = 'FAILED'
+            output['status'] = 'FAILED'
     return output
     
 # ---------------------------------------------------------------------------- #
@@ -277,7 +277,7 @@ def poly(full_ocr_result, poly):
 def ted(full_ocr_result):
     output = {
         'hsp': 'Poly Diploma',
-        'criteria_passed': '',
+        'status': '',
         'score': '',
         'specific_doc_class': 'Technical Engineer Diploma',
         'remarks': ''
@@ -294,7 +294,7 @@ def ted(full_ocr_result):
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
-        output['criteria_passed'] = 'UNSURE'
+        output['status'] = 'UNSURE'
         output['remarks'] = 'TED Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
 
@@ -305,17 +305,67 @@ def ted(full_ocr_result):
         award_confirmation_search = regex.search(r'(awarded\s*the\s*technical\s*engineer\s*diploma\s*in){e<=3}', full_pdf_text)
         if award_confirmation_search is None:
             # Couldn't detect
-            output['criteria_passed'] = 'UNSURE'
+            output['status'] = 'UNSURE'
             output['remarks'] = 'Unable to detect GPA or TED Confirmation in transcript, requires human intervention. Check that the full transcript was provided. '
         else:
             # There is an award confirmation
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
             output['remarks'] = 'Unable to detect GPA, awarded PASSED based on TED Confirmation. '
     else:
         gpa = float(gpa_search.group(2))
         output['score'] = gpa
         if gpa >= 1:
-            output['criteria_passed'] = 'PASSED'
+            output['status'] = 'PASSED'
         else:
-            output['criteria_passed'] = 'FAILED'
+            output['status'] = 'FAILED'
+    return output
+
+# ---------------------------------------------------------------------------- #
+#                                Analyze A-Level                               #
+# ---------------------------------------------------------------------------- #
+
+# ---------------------------------------------------------------------------- #
+#                      Analyze International Baccalaureate                     #
+# ---------------------------------------------------------------------------- #
+
+def ib(full_ocr_result):
+    output = {
+        'hsp': '', # Full A-Level or Partial A-Level
+        'status': 'PASSED', # Always PASSED for IB Case
+        'score': '',
+        'specific_doc_class': 'International Baccalaureate Diploma',
+        'remarks': ''
+    }
+
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
+    # Attempt extraction of IB Points
+    ib_points_regex_1 = r'(satisfied\.\s*total\s*(\d+)){e<=4}'
+    ib_points_regex_2 = r'(total\s*points\s*\:\s*(\d+)\s*result){e<=4}'
+    ib_points_search_1 = regex.search(ib_points_regex_1, full_pdf_text)
+    if ib_points_search_1 is None:
+        # First search failed, try the second one. The transcript may be a different type
+        ib_points_search_2 = regex.search(ib_points_regex_2, full_pdf_text)
+        if ib_points_search_2 is None:
+            # Both searches failed
+            output['hsp'] = 'Partial A-Level'
+            output['status'] = 'UNSURE'
+            output['remarks'] = 'Unable to detect IB Points. Human intervention is required. '
+            return output
+        else:
+            # Found IB Points through 2nd method
+            ib_points = int(ib_points_search_2.group(2))
+    else:
+        # Found IB Points through 1st method
+        ib_points = int(ib_points_search_1.group(2))
+    output['score'] = ib_points
+    if ib_points >= 24:
+        output['hsp'] = 'Full A-Level'
+    else:
+        output['hsp'] = 'Partial A-Level'
     return output

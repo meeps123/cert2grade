@@ -74,7 +74,7 @@ def churn(input_file):
     elif max_count_category == 'ib':
         return analysis.ib(full_ocr_result)
     elif max_count_category == 'nush':
-        print('nush')
+        return analysis.nush(full_ocr_result)
 
 output = churn(input_path)
 
