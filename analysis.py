@@ -40,9 +40,9 @@ def nlvl(full_ocr_result, first_page_merged_text):
     specific_doc_class_search = regex.search(specific_doc_class_pattern, first_page_merged_text)
     subtype = specific_doc_class_search.group(1)
     if subtype == 'technical':
-        output['specific_doc_class'] = 'Normal (Technical)'
+        output['specific_doc_class'] = 'Singapore-Cambridge General Certificate of Education Normal (Technical) Level'
     elif subtype == 'academic':
-        output['specific_doc_class'] = 'Normal (Academic)'
+        output['specific_doc_class'] = 'Singapore-Cambridge General Certificate of Education Normal (Academic) Level'
 
     # Find out whether this person mistakenly submitted the RESULT SLIP instead of the correct N-Level certificate
     result_slip_search = regex.search(r'(result\s*slip){e<=1}', first_page_merged_text)
@@ -94,7 +94,7 @@ def olvl(full_ocr_result, first_page_merged_text):
     output = {
         'hsp': 'O-Level & Below',
         'criteria_passed': '',
-        'specific_doc_class': 'Ordinary Level',
+        'specific_doc_class': 'Singapore-Cambridge General Certificate of Education Ordinary Level',
         'score': '',
         'remarks': ''
     }
@@ -166,10 +166,9 @@ def nitec(full_ocr_result, higher_nitec=False):
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
         output['criteria_passed'] = 'UNSURE'
-        output['specific_doc_class'] = 'Non-Transcript'
+        output['specific_doc_class'] = 'Higher National ITE Certificate' if higher_nitec else 'National ITE Certificate' 
         output['remarks'] = 'ITE Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
-    output['specific_doc_class'] = 'Transcript'
 
     # Extract GPA
     gpa_search = regex.search(r'(point\s*average\:\s*([\d\.]+)\s*result\:\s*awarded\s*the\s*national){e<=5}', full_pdf_text)
@@ -211,10 +210,8 @@ def poly(full_ocr_result, poly):
     if transcript_confirm_search is None:
         # This means the person didn't submit the transcript we wanted
         output['criteria_passed'] = 'UNSURE'
-        output['specific_doc_class'] = f'{poly.upper()} Non-Transcript'
         output['remarks'] = 'Poly Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
-    output['specific_doc_class'] = f'{poly.upper()} Transcript'
 
     # If the person submitted a SP transcript, check that it is a PACE transcript
     # PACE = Professional & Adult Continuing Education Academy
@@ -226,6 +223,8 @@ def poly(full_ocr_result, poly):
             output['remarks'] = 'Applicant submitted a SP Professional & Adult Continuing Education Transcript. '
             poly = 'sp_pace'
     
+    output['specific_doc_class'] = f'{poly.upper()} Diploma'
+
     # Extract GPA
     poly_gpa_regexes = {
         'np': r'(graduating\s*gpa\s*\:\s*([\d\.]+)){e<=3}',
