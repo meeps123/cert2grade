@@ -1,7 +1,7 @@
 import os
 import regex
 import analysis
-from paddleocr import PaddleOCR, PPStructure
+from paddleocr import PaddleOCR
 
 # ---------------------------------------------------------------------------- #
 #                               Global variables                               #
@@ -40,11 +40,11 @@ def churn(input_file):
         category_counts[category] = len(regex.findall(pattern, first_page_merged_text))
     max_count_category = max(category_counts, key=category_counts.get)
     if max_count_category == 'psle':
-        print('psle')
+        return analysis.psle(full_ocr_result)
     elif max_count_category == 'nlvl':
-        return analysis.nlvl(full_ocr_result, first_page_merged_text)
+        return analysis.nlvl(full_ocr_result)
     elif max_count_category == 'olvl':
-        return analysis.olvl(full_ocr_result, first_page_merged_text)
+        return analysis.olvl(full_ocr_result)
     elif max_count_category == 'ite':
         # Further differentiate between NITEC and H.NITEC
         if regex.search(r'(higher\s*national\s*ite\s*certificate\sin){e<=1}', first_page_merged_text) is not None:

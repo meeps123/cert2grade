@@ -18,7 +18,7 @@ import utils
 #                          Analyze N-Level Certificate                         #
 # ---------------------------------------------------------------------------- #
 
-def nlvl(full_ocr_result, first_page_merged_text):
+def nlvl(full_ocr_result):
     output = {
         'hsp': 'O-Level & Below',
         'status': '',
@@ -27,9 +27,16 @@ def nlvl(full_ocr_result, first_page_merged_text):
         'remarks': ''
     }
 
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
     # Find out whether this person is N(A) or N(T)
     specific_doc_class_pattern = r'normal\s*\((\w+)\)\s*level'
-    specific_doc_class_search = regex.search(specific_doc_class_pattern, first_page_merged_text)
+    specific_doc_class_search = regex.search(specific_doc_class_pattern, full_pdf_text)
     subtype = specific_doc_class_search.group(1)
     if subtype == 'technical':
         output['specific_doc_class'] = 'Singapore-Cambridge General Certificate of Education Normal (Technical) Level'
@@ -37,11 +44,11 @@ def nlvl(full_ocr_result, first_page_merged_text):
         output['specific_doc_class'] = 'Singapore-Cambridge General Certificate of Education Normal (Academic) Level'
 
     # Find out whether this person mistakenly submitted the RESULT SLIP instead of the correct N-Level certificate
-    result_slip_search = regex.search(r'(result\s*slip){e<=1}', first_page_merged_text)
+    result_slip_search = regex.search(r'(result\s*slip){e<=1}', full_pdf_text)
     if result_slip_search is None:
         # It is an N-Level certificate
         hsp_criteria_pattern_cert = r'(graded\s*6\s*or\sbetter\:\s*(\w+)){e<=3}'
-        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
+        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, full_pdf_text)
         if hsp_criteria_search_cert is None:
             # Couldn't detect
             output['status'] = 'UNSURE'
@@ -61,7 +68,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
         output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
         # Check using a separate method for the result slip
         hsp_criteria_pattern_slip = r'(graded\s*5\s*or\sbetter\:\s*(\d+)){e<=3}'
-        hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
+        hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, full_pdf_text)
         if hsp_criteria_search_slip is None:
             # Couldn't detect
             output['status'] = 'UNSURE'
@@ -82,7 +89,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
 #                          Analyze O-Level Certificate                         #
 # ---------------------------------------------------------------------------- #
 
-def olvl(full_ocr_result, first_page_merged_text):
+def olvl(full_ocr_result):
     output = {
         'hsp': 'O-Level & Below',
         'status': '',
@@ -91,12 +98,19 @@ def olvl(full_ocr_result, first_page_merged_text):
         'remarks': ''
     }
 
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
     # Find out whether this person mistakenly submitted the RESULT SLIP instead of the correct O-Level certificate
-    result_slip_search = regex.search(r'(result\s*slip){e<=1}', first_page_merged_text)
+    result_slip_search = regex.search(r'(result\s*slip){e<=1}', full_pdf_text)
     if result_slip_search is None:
         # It is an O-Level certificate
         hsp_criteria_pattern_cert = r'(graded\s*6\s*or\sbetter\:\s*(\w+)){e<=3}'
-        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, first_page_merged_text)
+        hsp_criteria_search_cert = regex.search(hsp_criteria_pattern_cert, full_pdf_text)
         if hsp_criteria_search_cert is None:
             # Couldn't detect
             output['status'] = 'UNSURE'
@@ -116,7 +130,7 @@ def olvl(full_ocr_result, first_page_merged_text):
         output['remarks'] += 'Result Slip was submitted instead of the proper N-Level certificate. '
         # Check using a separate method for the result slip
         hsp_criteria_pattern_slip = r'(graded\s*6\s*or\sbetter\:\s*(\d+)){e<=3}'
-        hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, first_page_merged_text)
+        hsp_criteria_search_slip = regex.search(hsp_criteria_pattern_slip, full_pdf_text)
         if hsp_criteria_search_slip is None:
             # Couldn't detect
             output['status'] = 'UNSURE'
