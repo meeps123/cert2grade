@@ -1,7 +1,7 @@
 import os
 import regex
 import analysis
-from paddleocr import PaddleOCR
+from paddleocr import PaddleOCR, PPStructure
 
 # ---------------------------------------------------------------------------- #
 #                               Global variables                               #
@@ -70,7 +70,7 @@ def churn(input_file):
     elif max_count_category == 'ted':
         return analysis.ted(full_ocr_result)
     elif max_count_category == 'alvl':
-        print('alvl')
+        return analysis.alvl(full_ocr_result)
     elif max_count_category == 'ib':
         return analysis.ib(full_ocr_result)
     elif max_count_category == 'nush':

@@ -1,6 +1,7 @@
-import numpy as np
+from copy import deepcopy
 import regex
 import editdistance
+import utils
 
 # ---------------------------------------------------------------------------- #
 #                            Description of Outputs                            #
@@ -12,15 +13,6 @@ import editdistance
     score:                  The numeric score specific to the educational qualification
     remarks:                Additional Remarks
 '''
-
-def word2num(word):
-    if regex.search(r'[a-z]+', word) is None:
-        # there are no letters in there
-        return None
-    indices = np.full((11), np.inf)
-    for i, reference in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']):
-        indices[i] = editdistance.eval(word, reference)
-    return np.argmin(indices)
 
 # ---------------------------------------------------------------------------- #
 #                          Analyze N-Level Certificate                         #
@@ -55,7 +47,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
             output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
-            num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
+            num_pass_subjects_cert = utils.word2num(hsp_criteria_search_cert.group(2))
             if num_pass_subjects_cert is None:
                 # Couldn't detect
                 output['status'] = 'UNSURE'
@@ -75,7 +67,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
             output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
-            num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
+            num_pass_subjects_slip = utils.word2num(hsp_criteria_search_slip.group(2))
             if num_pass_subjects_slip is None:
                 # Couldn't detect
                 output['status'] = 'UNSURE'
@@ -110,7 +102,7 @@ def olvl(full_ocr_result, first_page_merged_text):
             output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
-            num_pass_subjects_cert = word2num(hsp_criteria_search_cert.group(2))
+            num_pass_subjects_cert = utils.word2num(hsp_criteria_search_cert.group(2))
             if num_pass_subjects_cert is None:
                 # Couldn't detect
                 output['status'] = 'UNSURE'
@@ -130,7 +122,7 @@ def olvl(full_ocr_result, first_page_merged_text):
             output['status'] = 'UNSURE'
             output['remarks'] += 'Unable to detect if passed HSP Criteria, requires human intervention. '
         else:
-            num_pass_subjects_slip = word2num(hsp_criteria_search_slip.group(2))
+            num_pass_subjects_slip = utils.word2num(hsp_criteria_search_slip.group(2))
             if num_pass_subjects_slip is None:
                 # Couldn't detect
                 output['status'] = 'UNSURE'
@@ -323,6 +315,92 @@ def ted(full_ocr_result):
 # ---------------------------------------------------------------------------- #
 #                                Analyze A-Level                               #
 # ---------------------------------------------------------------------------- #
+
+def alvl(full_ocr_result):
+    output = {
+        'hsp': '', # Full A-Level or Partial A-Level
+        'status': 'PASSED', # Always PASSED for IB Case
+        'score': '',
+        'specific_doc_class': 'Singapore-Cambridge General Certificate of Education Advanced Level',
+        'remarks': ''
+    }
+
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
+    # Identify if the certificate or the result slip was submitted
+    result_slip_search = regex.search(r'(result\s*slip){e<=1}', full_pdf_text)
+    if result_slip_search is None:
+        # The person submitted the correct A-Level certificate
+        main_subj_search_regex = r'(level\s*grade\s*authority\s*(.*)\s*director\-general){e<=5}'
+    else:
+        # The person submitted the A-Level Results Slip
+        output['remarks'] += 'Result Slip was submitted instead of the proper A-Level certificate. '
+        main_subj_search_regex = r'(level\s*grade\s*authority\s*(.*)\s*serial){e<=5}'
+
+    # Perform extraction of subjects from main certificate
+    main_subj_search = regex.search(main_subj_search_regex, full_pdf_text)
+    if main_subj_search is None:
+        # Very hard to extract subjects without mistakes, revert to human intervention
+        output['hsp'] = 'Partial A-Level'
+        output['status'] = 'UNSURE'
+        output['remarks'] = 'Unable to extract A Level subjects. Human intervention required. '
+        return output
+    else:
+        main_subj_string = regex.sub(r'\d\d+', '', main_subj_search.group(2))
+        subjects = []
+        subject_template = {'name':'','level':'','grade':''}
+        for i in range(7):
+            subjects.append(deepcopy(subject_template))
+        subject_counters = {
+            'name': 0,
+            'level': 0,
+            'grade': 0
+        }
+        subject_list = utils.alvl_subject_list()
+        for token in main_subj_string.split(' '):
+            if editdistance.eval(token, 'cambridge') <= 2:
+                # Current token is the Cambridge separator
+                continue
+            
+            if len(token) == 1 and token in 'abcdesu':
+                # Current token represents a H1/H2 grade
+                subjects[subject_counters['grade']]['grade'] = token
+                subject_counters['grade'] += 1
+                continue
+
+            h_search = regex.search(r'h(\d)', token)
+            if h_search is not None:
+                # Current token represents a HX Level
+                subjects[subject_counters['level']]['level'] = int(h_search.group(1))
+                subject_counters['level'] += 1
+                continue
+            
+            if editdistance.eval(token, 'dist') <= 1:
+                subjects[subject_counters['grade']]['grade'] = 'dist'
+                subject_counters['grade'] += 1
+                continue
+            if editdistance.eval(token, 'merit') <= 1:
+                subjects[subject_counters['grade']]['grade'] = 'merit'
+                subject_counters['grade'] += 1
+                continue
+            if editdistance.eval(token, 'pass') <= 1:
+                subjects[subject_counters['grade']]['grade'] = 'pass'
+                subject_counters['grade'] += 1
+                continue
+
+            match = utils.match_in_subject_list(subject_list, token)
+            if match is not None:
+                subjects[subject_counters['name']]['name'] = match
+                subject_counters['name'] += 1
+                subject_list.remove(match) 
+                continue
+
+    # TODO: Extraction of PW in the future
 
 # ---------------------------------------------------------------------------- #
 #                      Analyze International Baccalaureate                     #
