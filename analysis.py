@@ -9,6 +9,7 @@ import editdistance
     hsp:                    The desired Highest Standard Passed Label
     criteria_passed:        Whether the HSP Classification criteria was PASSED or FAILED
     specific_doc_class:     The specific educational qualification which the submitted document represents
+    score:                  The numeric score specific to the educational qualification
     remarks:                Additional Remarks
 '''
 
@@ -30,6 +31,7 @@ def nlvl(full_ocr_result, first_page_merged_text):
         'hsp': 'O-Level & Below',
         'criteria_passed': '',
         'specific_doc_class': '',
+        'score': '',
         'remarks': ''
     }
 
@@ -93,6 +95,7 @@ def olvl(full_ocr_result, first_page_merged_text):
         'hsp': 'O-Level & Below',
         'criteria_passed': '',
         'specific_doc_class': 'Ordinary Level',
+        'score': '',
         'remarks': ''
     }
 
@@ -136,4 +139,49 @@ def olvl(full_ocr_result, first_page_merged_text):
                 output['criteria_passed'] = 'PASSED'
             else:
                 output['criteria_passed'] = 'FAILED' 
+    return output
+
+# ---------------------------------------------------------------------------- #
+#                         Analyze NITEC / Higher NITEC                         #
+# ---------------------------------------------------------------------------- #
+
+def nitec(full_ocr_result, higher_nitec=False):
+    output = {
+        'hsp': 'Higher NITEC' if higher_nitec else 'NITEC',
+        'criteria_passed': '',
+        'specific_doc_class': '',
+        'score': '',
+        'remarks': ''
+    }
+
+    # Get full text of the entire pdf
+    texts = []
+    for page_result in full_ocr_result:
+        texts.append([line[1][0] for line in page_result])
+    merged_texts = [' '.join(x).lower() for x in texts]
+    full_pdf_text = ' '.join(merged_texts)
+
+    # Ensure that the person submitted the transcript and not some other document
+    transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
+    if transcript_confirm_search is None:
+        # This means the person didn't submit the transcript we wanted
+        output['criteria_passed'] = 'UNSURE'
+        output['specific_doc_class'] = 'Non-Transcript'
+        output['remarks'] = 'ITE Certificate/Some other document was submitted instead of the Academic Transcript. '
+        return output
+    output['specific_doc_class'] = 'Transcript'
+
+    # Extract GPA
+    gpa_search = regex.search(r'(point\s*average\:\s*([\d\.]+)\s*result\:\s*awarded){e<=5}', full_pdf_text)
+    if gpa_search is None:
+        # Couldn't detect
+        output['criteria_passed'] = 'UNSURE'
+        output['remarks'] = 'Unable to detect GPA in transcript, requires human intervention. Check that the full transcript was provided. '
+    else:
+        gpa = float(gpa_search.group(2))
+        output['score'] = gpa
+        if gpa >= 1:
+            output['criteria_passed'] = 'PASSED'
+        else:
+            output['criteria_passed'] = 'FAILED'
     return output

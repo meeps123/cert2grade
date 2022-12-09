@@ -47,11 +47,11 @@ def churn(input_file):
         return analysis.olvl(full_ocr_result, first_page_merged_text)
     elif max_count_category == 'ite':
         # Further differentiate between NITEC and H.NITEC
-        if len(regex.findall(r'(higher\s*national\s*ite\s*certificate\sin){e<=1}', first_page_merged_text)):
+        if regex.search(r'(higher\s*national\s*ite\s*certificate\sin){e<=1}', first_page_merged_text) is not None:
             # its a Higher NITEC
-            print('higher_nitec')
+            return analysis.nitec(full_ocr_result, higher_nitec=True)
         else:
-            print('nitec')
+            return analysis.nitec(full_ocr_result, higher_nitec=False)
     elif max_count_category == 'poly':
         # Further differentiate between the 5 local polys
         polys = {
