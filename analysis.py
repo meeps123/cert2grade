@@ -169,7 +169,8 @@ def nitec(full_ocr_result, higher_nitec=False):
 
     # Ensure that the person submitted the transcript and not some other document
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
-    if transcript_confirm_search is None:
+    transcript_confirm_search_2 = regex.search(r'(examination\s*results){e<=2}', full_pdf_text)
+    if transcript_confirm_search is None and transcript_confirm_search_2 is None:
         # This means the person didn't submit the transcript we wanted
         output['status'] = 'UNSURE'
         output['remarks'] = 'ITE Certificate/Some other document was submitted instead of the Academic Transcript. '
@@ -219,9 +220,11 @@ def poly(full_ocr_result, poly):
 
     # Ensure that the person submitted the transcript and not some other document
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
-    if transcript_confirm_search is None:
+    transcript_confirm_search_2 = regex.search(r'(examination\s*results){e<=2}', full_pdf_text)
+    if transcript_confirm_search is None and transcript_confirm_search_2 is None:
         # This means the person didn't submit the transcript we wanted
         output['status'] = 'UNSURE'
+        output['specific_doc_class'] = f'{poly.upper()} Diploma'
         output['remarks'] = 'Poly Certificate/Some other document was submitted instead of the Academic Transcript. '
         return output
 
@@ -298,7 +301,8 @@ def ted(full_ocr_result):
 
     # Ensure that the person submitted the transcript and not some other document
     transcript_confirm_search = regex.search(r'(transcript){e<=2}', full_pdf_text)
-    if transcript_confirm_search is None:
+    transcript_confirm_search_2 = regex.search(r'(examination\s*results){e<=2}', full_pdf_text)
+    if transcript_confirm_search is None and transcript_confirm_search_2 is None:
         # This means the person didn't submit the transcript we wanted
         output['status'] = 'UNSURE'
         output['remarks'] = 'TED Certificate/Some other document was submitted instead of the Academic Transcript. '
