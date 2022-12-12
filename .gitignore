@@ -1,9 +1,9 @@
 *.png
 *.code-workspace
 *.lnk
-pretrained_model/
+*.profile
+models/
 PaddleOCR/
 data/
 output/
 __pycache__/
-*.profile

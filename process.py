@@ -8,7 +8,15 @@ from paddleocr import PaddleOCR
 # ---------------------------------------------------------------------------- #
 
 GLOBAL_INPUT_DIR = 'data/input/'
-GLOBAL_OCR = PaddleOCR(lang='en', show_log=False, enable_mkldnn=True)
+GLOBAL_OCR = PaddleOCR(
+    lang='en', 
+    show_log=False,
+    cpu_threads=8,
+    enable_mkldnn=True,
+    rec_model_dir='models/rec/',
+    det_model_dir='models/det/',
+    cls_model_dir='models/cls/',
+)
 
 input_path = os.path.join(GLOBAL_INPUT_DIR, os.listdir(GLOBAL_INPUT_DIR)[0])
 
