@@ -428,6 +428,13 @@ def alvl(full_ocr_result):
                 subject_list.remove(match) 
                 continue
 
+    # If the three counts do not match, it means the algo failed to detect all the grades and the results must be discarded
+    if subject_counters['name'] != subject_counters['level'] or subject_counters['name'] != subject_counters['grade'] or subject_counters['level'] != subject_counters['grade']:
+        output['hsp'] = 'Partial A-Level'
+        output['status'] = 'UNSURE'
+        output['remarks'] = 'Failed to extract all A Level subjects. Human intervention required. '
+        return output
+
     # TODO: Extraction of PW in the future. Assume PW cert is appended to main cert.
     # For now, we will assume Proj Work is A.
     if subjects[-1]['name'] != '':

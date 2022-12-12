@@ -8,7 +8,7 @@ from paddleocr import PaddleOCR
 # ---------------------------------------------------------------------------- #
 
 GLOBAL_INPUT_DIR = 'data/input/'
-GLOBAL_OCR = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
+GLOBAL_OCR = PaddleOCR(lang='en', show_log=False, enable_mkldnn=True)
 
 input_path = os.path.join(GLOBAL_INPUT_DIR, os.listdir(GLOBAL_INPUT_DIR)[0])
 
@@ -18,7 +18,7 @@ def churn(input_file):
         raise Exception('Input file is not a PDF.')
     
     # OCR the entire PDF
-    full_ocr_result = GLOBAL_OCR.ocr(input_file, cls=True)
+    full_ocr_result = GLOBAL_OCR.ocr(input_file, cls=False)
 
     # Consider the first page of the PDF to classify the general type of document.
     # The general classification will be used to do a type-specific analysis which will give the desired output.
