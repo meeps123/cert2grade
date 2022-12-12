@@ -6,3 +6,4 @@ PaddleOCR/
 data/
 output/
 __pycache__/
+*.profile

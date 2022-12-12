@@ -362,14 +362,22 @@ def alvl(full_ocr_result):
 
     # Perform extraction of subjects from main certificate
     main_subj_search = regex.search(main_subj_search_regex, full_pdf_text)
-    if main_subj_search is None:
+    main_subj_search_2 = regex.search(r'(general\s*paper\s*.*dir){e<=2}', full_pdf_text)
+    main_subj_search_3 = regex.search(r'(knowledge\s*and\s*.*dir){e<=2}', full_pdf_text)
+    if main_subj_search is None and main_subj_search_2 is None and main_subj_search_3 is None:
         # Very hard to extract subjects without mistakes, revert to human intervention
         output['hsp'] = 'Partial A-Level'
         output['status'] = 'UNSURE'
         output['remarks'] = 'Unable to extract A Level subjects. Human intervention required. '
         return output
     else:
-        main_subj_string = regex.sub(r'\d\d+', '', main_subj_search.group(2))
+        if main_subj_search is not None:
+            working_result = main_subj_search.group(2)
+        elif main_subj_search_2 is not None:
+            working_result = main_subj_search_2.group(1)
+        else:
+            working_result = main_subj_search_3.group(1)
+        main_subj_string = regex.sub(r'\d\d+', '', working_result)
         subjects = []
         subject_template = {'name':'','level':'','grade':''}
         for i in range(6):
