@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from cert2grade.db import get_db
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -64,7 +64,8 @@ def login():
             return redirect(url_for('index'))
 
         flash(error)
-
+    if g.user:
+        return redirect(url_for('index'))
     return render_template('auth/login.html')
 
 @bp.before_app_request

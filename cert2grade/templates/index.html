@@ -1,17 +1,73 @@
 {% extends "base.html" %}
 
+{% block specific_stylesheets %}
+<style>
+    .req_history {
+        margin: auto;
+        width: 80vw;
+    }
+    .req_entry_row {
+        position: relative;
+    }
+    .req_entry_row>input {
+        position: absolute;
+        left: -30px;
+        cursor: pointer;
+    }
+    .req_entry_wrapper_title {
+        display: flex;
+        justify-content: space-around;
+    }
+    .req_entry_wrapper {
+        display: flex;
+        justify-content: space-around;
+    }
+    .req_entry_wrapper_selected {
+        background-color: #D0DBF8;
+    }
+    .req_entry_wrapper:hover {
+        background-color: #D0DBF8;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block specific_scripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>    
+{% endblock %}
+
 {% block content %}
-    <h1>upload pdf here</h1>
-    {% for request in request_history %}
-        <div>
-            <input type="checkbox">
-            <div class="request_code">{{ request["code"] }}</div>
-            <div class="request_timestamp">{{ request["timestamp"] }}</div>
-            <div class="request_size">{{ request["files"] }} files ({{ request["size"] }})</div>
-            <div class="request_duration">{{ request["duration"] }}s</div>
+    <h1>upload files here</h1>
+    <form method="post" enctype="multipart/form-data" action="{{ url_for('dashboard.upload') }}"">
+        <input type="file" name="file_upload" accept=".pdf" multiple>upload pdf here</h1>
+        <input type="submit" value="file_upload">
+    </form>
+    <br>
+    <h1>request history</h1>
+    <div class="req_history">
+        <div class="req_entry_row">
+            <div class="req_entry_wrapper_title">
+                <div class="req_code">code</div>
+                <div class="req_timestamp">timestamp</div>
+                <div class="req_size">size</div>
+                <div class="req_duration">duration</div>
+            </div>
         </div>
-        {% if not loop.last %}
-            <hr>
-        {% endif %}
-    {% endfor %}
+        {% for request in request_history %}
+            <div class="req_entry_row">
+                <input type="checkbox">
+                <div class="req_entry_wrapper" onclick="reqClick(event, this)">
+                    <div class="req_code">{{ request["code"] }}</div>
+                    <div class="req_timestamp">{{ request["timestamp"] }}</div>
+                    <div class="req_size">{{ request["files"] }} files ({{ request["size"] }}MB)</div>
+                    <div class="req_duration">{{ request["duration"] }}s</div>
+                    
+                </div>
+                {% if not loop.last %}
+                    <hr>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+   
 {% endblock %}

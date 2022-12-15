@@ -20,4 +20,5 @@ def index():
 @bp.route('/upload', methods=['POST'])
 @login_required
 def upload():
-    return render_template('upload.html')    
+    if request.method == 'POST':
+        raise Exception
