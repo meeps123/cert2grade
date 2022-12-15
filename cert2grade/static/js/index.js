@@ -20,6 +20,6 @@ function reqClick(event, reqEntry) {
 }   
 
 function openReq(reqEntry) {
-    console.log('double click')
-    alert('open the request')
+    reqCode = reqEntry.firstElementChild.textContent;
+    
 }
