@@ -102,6 +102,7 @@ scipy==1.9.3
 Shapely==1.8.5.post1
 simplejson==3.18.0
 six==1.16.0
+snakeviz==2.1.1
 soupsieve==2.3.2.post1
 stack-data==0.6.0
 termcolor==2.1.0
