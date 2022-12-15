@@ -1,14 +1,17 @@
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>cert2grade</title>
-</head>
-<body>
-    <h1>cert2grade test</h1>
-    <form action=''>
-        <input type='file' id='file_upload' name='filename'>
-        <input type='submit'>
-    </form>
-</body>    
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>upload pdf here</h1>
+    {% for request in request_history %}
+        <div>
+            <input type="checkbox">
+            <div class="request_code">{{ request["code"] }}</div>
+            <div class="request_timestamp">{{ request["timestamp"] }}</div>
+            <div class="request_size">{{ request["files"] }} files ({{ request["size"] }})</div>
+            <div class="request_duration">{{ request["duration"] }}s</div>
+        </div>
+        {% if not loop.last %}
+            <hr>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

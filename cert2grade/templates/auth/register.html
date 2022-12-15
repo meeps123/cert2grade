@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block header %}
-    <h1>{% block title %}Register{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
+  <h1>register</h1>
   <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
+    <label for="email">email</label>
+    <input name="email" id="email" required>
+    <label for="password">password</label>
     <input type="password" name="password" id="password" required>
+    {% for message in get_flashed_messages() %}
+      <div class='flash'>{{ message }}</div>
+    {% endfor %}
     <input type="submit" value="Register">
   </form>
 {% endblock %}

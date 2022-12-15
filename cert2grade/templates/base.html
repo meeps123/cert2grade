@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<title>{% block title %}{% endblock %} - cert2grade</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<title>cert2grade</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <nav>
     <h1>cert2grade</h1>
     <ul>
         {% if g.user %}
-            <li><span>{{ g.user['username'] }}</span></li>
+            <li><span>{{ g.user['email'] }}</span></li>
             <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
         {% else %}
             <li><a href="{{ url_for('auth.register') }}">Register</a></li>
@@ -13,12 +13,4 @@
         {% endif %}
     </ul>
 </nav>
-<section class='content'>
-    <header>
-        {% block header %}{% endblock %}
-    </header>
-    {% for message in get_flashed_messages() %}
-        <div class='flash'>{{ message }}</div>
-    {% endfor %}
-    {% block content %}{% endblock %}
-</section>
+{% block content %}{% endblock %}
