@@ -1,3 +1,4 @@
+import json
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -22,3 +23,23 @@ def index():
 def upload():
     if request.method == 'POST':
         raise Exception
+
+@bp.route('/delete_request', methods=['POST'])
+@login_required
+def delete_request():
+    request_codes = request.form['req_codes'].split('|')
+    repl_str = '?,'*len(request_codes)
+    repl_str = repl_str[:-1]
+    query = 'DELETE FROM requests WHERE user_id = ? AND code IN (' + repl_str + ')'
+    print(request_codes)
+    print(query)
+    success = True
+    try:
+        db = get_db()
+        db.execute(query, (session['user_id'], *request_codes))
+        print(db)
+        db.commit()
+    except:
+        success = False
+        flash('error deleting requests')
+    return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}

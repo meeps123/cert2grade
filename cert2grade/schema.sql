@@ -32,4 +32,4 @@ CREATE TABLE files (
     type TEXT,
     remarks TEXT,
     FOREIGN KEY(request_id) REFERENCES requests(request_id)
-)
+);

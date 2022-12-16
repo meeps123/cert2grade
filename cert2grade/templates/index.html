@@ -9,6 +9,9 @@
     .req_entry_row {
         position: relative;
     }
+    .req_entry_row_selected {
+        background-color: #D0DBF8;
+    }
     .req_entry_row>input {
         position: absolute;
         left: -30px;
@@ -22,10 +25,7 @@
         display: flex;
         justify-content: space-around;
     }
-    .req_entry_wrapper_selected {
-        background-color: #D0DBF8;
-    }
-    .req_entry_wrapper:hover {
+    .req_entry_row:hover {
         background-color: #D0DBF8;
         cursor: pointer;
     }
@@ -33,7 +33,10 @@
 {% endblock %}
 
 {% block specific_scripts %}
-<script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>    
+<script>
+    const SCRIPT_ROOT = {{ request.script_root|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>    
 {% endblock %}
 
 {% block content %}
@@ -45,18 +48,20 @@
     <br>
     <h1>request history</h1>
     <div class="req_history">
-        <div class="req_entry_row">
-            <div class="req_entry_wrapper_title">
-                <div class="req_code">code</div>
-                <div class="req_timestamp">timestamp</div>
-                <div class="req_size">size</div>
-                <div class="req_duration">duration</div>
-            </div>
+        <button id="delete_req_btn" class="hidden"></button>
+        {% for message in get_flashed_messages() %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+        <div class="req_entry_wrapper_title">
+            <div class="req_code">code</div>
+            <div class="req_timestamp">timestamp</div>
+            <div class="req_size">size</div>
+            <div class="req_duration">duration</div>
         </div>
         {% for request in request_history %}
             <div class="req_entry_row">
-                <input type="checkbox">
-                <div class="req_entry_wrapper" onclick="reqClick(event, this)">
+                <input type="checkbox" unchecked>
+                <div class="req_entry_wrapper" onclick="reqClick(event, this)" rowindex="{{ loop.index0 }}">
                     <div class="req_code">{{ request["code"] }}</div>
                     <div class="req_timestamp">{{ request["timestamp"] }}</div>
                     <div class="req_size">{{ request["files"] }} files ({{ request["size"] }}MB)</div>
