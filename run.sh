@@ -1,0 +1,1 @@
+flask --app cert2grade --debug run
