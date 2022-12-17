@@ -56,6 +56,11 @@ hr {
     padding: 0;
 }
 
+.content {
+    margin: auto;
+    width: 80vw;
+}
+
 .hidden {
     display: none;
 }

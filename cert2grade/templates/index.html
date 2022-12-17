@@ -2,9 +2,13 @@
 
 {% block specific_stylesheets %}
 <style>
-    .req_history {
-        margin: auto;
-        width: 80vw;
+    .req_history_header {
+        position: relative;
+    }
+    .req_history_header button {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
     }
     .req_entry_row {
         position: relative;
@@ -46,9 +50,11 @@
         <input type="submit" value="file_upload">
     </form>
     <br>
-    <h1>request history</h1>
-    <div id="req_history" class="req_history">
+    <div class="req_history_header">
+        <h1>request history</h1>
         <button id="delete_req_btn" class="hidden"></button>
+    </div>
+    <div id="req_history" class="req_history">
         {% for message in get_flashed_messages() %}
             <div class="flash">{{ message }}</div>
         {% endfor %}
