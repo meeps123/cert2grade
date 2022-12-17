@@ -31,15 +31,13 @@ def delete_request():
     repl_str = '?,'*len(request_codes)
     repl_str = repl_str[:-1]
     query = 'DELETE FROM requests WHERE user_id = ? AND code IN (' + repl_str + ')'
-    print(request_codes)
-    print(query)
     success = True
     try:
         db = get_db()
         db.execute(query, (session['user_id'], *request_codes))
-        print(db)
         db.commit()
+        affectedRows = db.execute('SELECT changes()').fetchone()[0]
+        if affectedRows == 0: raise Exception
     except:
         success = False
-        flash('error deleting requests')
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}

@@ -106,5 +106,8 @@ function deleteReq() {
         'body': data
     })
     .then(response => response.json())
-    .then(data => {if (data['success']) window.location = SCRIPT_ROOT});
+    .then(data => {
+        if (!data['success']) alert(`error deleting ${total} entr${(total == 1) ? 'y' : 'ies'}`);
+        window.location = SCRIPT_ROOT;
+    });
 }
