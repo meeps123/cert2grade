@@ -1,3 +1,4 @@
+var reqHistoryDiv;
 var lastSelectedEntry;
 var allReqEntries = document.getElementsByClassName('req_entry_wrapper');
 var sameEntryToggle = false;
@@ -13,10 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i=0; i<checkboxes.length; i++) {
         checkboxes[i].checked = false;
     }
+    reqHistoryDiv = document.getElementById('req_history');
 });
 document.addEventListener('keydown', (event) => {
     let e = event || window.event;
     if (e.key == "Escape") clearAll();
+});
+document.addEventListener('click', (event) => {
+    let e = event || window.event;
+    if (!reqHistoryDiv.contains(e.target)) clearAll();
 });
 
 function rowIndex(reqEntry) {
@@ -51,14 +57,14 @@ function selectRowsBetweenIndices(indices) {
     updateDeleteReqBtn();
 }
 
-function reqClick(event, reqEntry) {
+function reqClick(event, reqEntry, fromCheckbox) {
     let e = event || window.event;
-    if (e.detail == 1) {
+    if (e.detail == 1 || fromCheckbox) {
         if (e.ctrlKey && e.shiftKey) {
             selectRowsBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(reqEntry)]);
         }
         if (e.ctrlKey) toggleSelectReq(reqEntry);
-        if (e.button === 0) {
+        if (e.button === 0 || fromCheckbox) {
             if (!e.ctrlKey && !e.shiftKey) {
                 if (reqEntry != lastSelectedEntry || sumMask(selectedReqMask) > 1) clearAll();
                 toggleSelectReq(reqEntry);
@@ -70,7 +76,12 @@ function reqClick(event, reqEntry) {
     } else if (event.detail == 2) {
         openReq(reqEntry);
     }
-}   
+}
+
+function reqCheckboxClick(event, reqEntryCheckbox) {
+    reqEntryCheckbox.checked = !reqEntryCheckbox.checked;
+    reqClick(event, reqEntryCheckbox.nextElementSibling, true);
+}
 
 function sumMask(mask) {
     return mask.reduce((a,b)=>a+b,0)
@@ -88,6 +99,7 @@ function updateDeleteReqBtn() {
 
 function openReq(reqEntry) {
     reqCode = reqEntry.firstElementChild.textContent;
+    window.location = `${SCRIPT_ROOT}/${encodeURIComponent(reqCode)}`;
 }
 
 function deleteReq() {
@@ -100,7 +112,7 @@ function deleteReq() {
     }
     let data = new FormData();
     data.append('req_codes', selectedReqCodes.join('|'));
-    let url = `${SCRIPT_ROOT}/delete_request`;
+    let url = `${SCRIPT_ROOT}/delete_req`;
     fetch(url, {
         'method': 'POST',
         'body': data

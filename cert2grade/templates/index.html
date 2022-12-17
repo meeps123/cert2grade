@@ -47,7 +47,7 @@
     </form>
     <br>
     <h1>request history</h1>
-    <div class="req_history">
+    <div id="req_history" class="req_history">
         <button id="delete_req_btn" class="hidden"></button>
         {% for message in get_flashed_messages() %}
             <div class="flash">{{ message }}</div>
@@ -58,15 +58,14 @@
             <div class="req_size">size</div>
             <div class="req_duration">duration</div>
         </div>
-        {% for request in request_history %}
+        {% for req in req_history %}
             <div class="req_entry_row">
-                <input type="checkbox" unchecked>
-                <div class="req_entry_wrapper" onclick="reqClick(event, this)" rowindex="{{ loop.index0 }}">
-                    <div class="req_code">{{ request["code"] }}</div>
-                    <div class="req_timestamp">{{ request["timestamp"] }}</div>
-                    <div class="req_size">{{ request["files"] }} files ({{ request["size"] }}MB)</div>
-                    <div class="req_duration">{{ request["duration"] }}s</div>
-                    
+                <input type="checkbox" onclick="reqCheckboxClick(event, this, true)" unchecked>
+                <div class="req_entry_wrapper" onclick="reqClick(event, this, false)" rowindex="{{ loop.index0 }}">
+                    <div class="req_code">{{ req["code"] }}</div>
+                    <div class="req_timestamp">{{ req["timestamp"] }}</div>
+                    <div class="req_size">{{ req["files"] }} files ({{ req["size"] }}MB)</div>
+                    <div class="req_duration">{{ req["duration"] }}s</div>
                 </div>
                 {% if not loop.last %}
                     <hr>

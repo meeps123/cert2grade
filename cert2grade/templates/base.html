@@ -4,7 +4,7 @@
 {% block specific_stylesheets %}{% endblock %}
 {% block specific_scripts %}{% endblock %}
 <nav>
-    <h1>cert2grade</h1>
+    <h1><a href="{{ url_for('dashboard.index') }}">cert2grade</a></h1>
     <ul>
         {% if g.user %}
             <li><span>{{ g.user['email'] }}</span></li>
