@@ -25,6 +25,7 @@ def index():
         req['timestamp'] = formatted_timestamp
     return render_template('index.html', req_history=json_req_history)
 
+@bp.post('/create_req')
 @login_required
 def create_req():
     user_id = session['user_id']
@@ -41,20 +42,12 @@ def create_req():
     except:
         return 'failed'
     return {
-        'user_id': user_id,
         'code': req_code,
-        'timestamp': timestamp,
-        'files': files,
-        'size': size,
-        'duration': duration
     }
 
-@bp.post('/upload')
 @login_required
 def upload():
-    # create a new request
-    req = create_req()
-    return 'test'
+    return ''
 
 @bp.route('/delete_req', methods=['POST'])
 @login_required
@@ -75,7 +68,7 @@ def delete_req():
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
 
 @bp.route('/req/<req_code>', methods=['GET', 'POST'])
-def show_req(req_code):
+def show_req(req_code, dropzone_obj=None):
     code = escape(req_code)
     db = get_db()
     try:
@@ -96,4 +89,7 @@ def show_req(req_code):
         return render_template('view_results.html', req_code=code, files=files)
     elif req['duration'] == -1:
         # in uploading / churning phase
-        return render_template('upload.html', req_code=code)
+        if dropzone_obj:
+            return render_template('upload.html', req_code=code, dropzone=dropzone_obj)
+        else:
+            return render_template('churn.html', req_code=code)

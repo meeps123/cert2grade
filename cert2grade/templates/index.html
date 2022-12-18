@@ -49,7 +49,10 @@
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
-    let DROPZONE = new Dropzone('div#file_upload', {url: '/upload'});
+    let DROPZONE = new Dropzone('div#file_upload', {
+        acceptedFiles: 'application/pdf',
+        autoProcessQueue: false
+    });
 </script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>    
 {% endblock %}
@@ -58,10 +61,11 @@
     <h1>upload files here</h1>
     <form 
         id="file_upload" 
-        class="dropzone" 
         method="post" 
+        class="dropzone"
         enctype="multipart/form-data" 
-        action="{{ url_for('dashboard.upload') }}"></form>
+        action="{{ url_for('dashboard.create_req') }}">
+    </form>
     <br>
     <div class="req_history_header">
         <h1>request history</h1>
