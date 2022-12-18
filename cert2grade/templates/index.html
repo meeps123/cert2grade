@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block specific_stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone_basic.css') }}">
 <style>
     .req_history_header {
         position: relative;
@@ -21,34 +22,46 @@
         left: -30px;
         cursor: pointer;
     }
-    .req_entry_wrapper_title {
-        display: flex;
-        justify-content: space-around;
-    }
-    .req_entry_wrapper {
-        display: flex;
-        justify-content: space-around;
-    }
     .req_entry_row:hover {
         background-color: #D0DBF8;
         cursor: pointer;
+    }
+    .req_code {
+        display: inline-block;
+        width: 20%;
+    }
+    .req_timestamp {
+        display: inline-block;
+        width: 25%;
+    }
+    .req_size {
+        display: inline-block;
+        width: 20%;
+    }
+    .req_duration {
+        display: inline-block;
+        width: 20%;
     }
 </style>
 {% endblock %}
 
 {% block specific_scripts %}
+<script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
+    let DROPZONE = new Dropzone('div#file_upload', {url: '/upload'});
 </script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>    
 {% endblock %}
 
 {% block content %}
     <h1>upload files here</h1>
-    <form method="post" enctype="multipart/form-data" action="{{ url_for('dashboard.upload') }}"">
-        <input type="file" name="file_upload" accept=".pdf" multiple>upload pdf here</h1>
-        <input type="submit" value="file_upload">
-    </form>
+    <form 
+        id="file_upload" 
+        class="dropzone" 
+        method="post" 
+        enctype="multipart/form-data" 
+        action="{{ url_for('dashboard.upload') }}"></form>
     <br>
     <div class="req_history_header">
         <h1>request history</h1>

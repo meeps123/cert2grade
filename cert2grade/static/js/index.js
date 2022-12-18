@@ -99,7 +99,7 @@ function updateDeleteReqBtn() {
 
 function openReq(reqEntry) {
     reqCode = reqEntry.firstElementChild.textContent;
-    window.location = `${SCRIPT_ROOT}/${encodeURIComponent(reqCode)}`;
+    window.location = `${SCRIPT_ROOT}/req/${encodeURIComponent(reqCode)}`;
 }
 
 function deleteReq() {

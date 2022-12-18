@@ -1,4 +1,6 @@
 import json
+import shortuuid
+from datetime import datetime
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -14,15 +16,45 @@ bp = Blueprint('dashboard', __name__)
 def index():
     db = get_db()
     req_history = db.execute(
-        'SELECT * FROM requests WHERE user_id = ?', (session['user_id'],)
+        'SELECT * FROM requests WHERE user_id = ? ORDER BY timestamp DESC', (session['user_id'],)
     ).fetchall()
-    return render_template('index.html', req_history=req_history)
+    json_req_history = [dict((req.keys()[k],v) for k,v in enumerate(req)) for req in req_history]
+    for req in json_req_history:
+        int_timestamp = req['timestamp']
+        formatted_timestamp = datetime.fromtimestamp(int_timestamp).strftime('%d-%m-%Y %H:%M:%S')
+        req['timestamp'] = formatted_timestamp
+    return render_template('index.html', req_history=json_req_history)
 
-@bp.route('/upload', methods=['POST'])
+@login_required
+def create_req():
+    user_id = session['user_id']
+    req_code = shortuuid.ShortUUID().random(length=6)
+    timestamp = datetime.now().timestamp()
+    files = len(request.files)
+    size = '' # not sure of the full size yet
+    duration = -1 # since the upload is in progress
+    query = 'INSERT INTO requests (user_id, code, timestamp, files, size, duration) VALUES (?, ?, ?, ?, ?, ?)'
+    try:
+        db = get_db()
+        db.execute(query, (user_id, req_code, timestamp, files, size, duration))
+        db.commit()
+    except:
+        return 'failed'
+    return {
+        'user_id': user_id,
+        'code': req_code,
+        'timestamp': timestamp,
+        'files': files,
+        'size': size,
+        'duration': duration
+    }
+
+@bp.post('/upload')
 @login_required
 def upload():
-    if request.method == 'POST':
-        raise Exception
+    # create a new request
+    req = create_req()
+    return 'test'
 
 @bp.route('/delete_req', methods=['POST'])
 @login_required
@@ -42,7 +74,7 @@ def delete_req():
         success = False
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
 
-@bp.route('/<req_code>', methods=['GET', 'POST'])
+@bp.route('/req/<req_code>', methods=['GET', 'POST'])
 def show_req(req_code):
     code = escape(req_code)
     db = get_db()
