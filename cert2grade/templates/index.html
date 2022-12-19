@@ -106,15 +106,25 @@
             <button id="start_churn" class="hidden">churn</button>
         </div>
         <div id="previews" class="dropzone-previews">
-            <div id="preview_template" class="dz-preview dz-file-preview hidden">
-                <div class="dz-filename" data-dz-name></div>
+        </div>
+        <div id="preview_template" class="hidden">
+            <div class="dz-preview dz-file-preview">
+                <div class="dz-filename">
+                    <span data-dz-name></span>
+                </div>
                 <input type="checkbox" unchecked>
                 <img src="https://picsum.photos/seed/picsum/200" data-dz-thumbnail />
                 <div class="dz-progress">
                     <span class="dz-upload" data-dz-uploadprogress></span>
-                    <div id="progress_text"><span id="uploaded_size"></span>/<span class="dz-size" data-dz-size></span></div>
+                    <div id="progress_text">
+                        <span id="uploaded_size">0.00MB</span>
+                        /
+                        <span class="dz-size" data-dz-size></span>
+                    </div>
                 </div>
-                <div class="dz-error-message"><span data-dz-errormessage></span></div>
+                <div class="dz-error-message">
+                    <span data-dz-errormessage></span>
+                </div>
             </div>
         </div>
     </div>
