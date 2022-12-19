@@ -2,7 +2,6 @@ var indexDropzone;
 
 document.addEventListener('DOMContentLoaded', handleDropzone);
 
-
 function handleDropzone() {
     let reqCode;
     let reqCodeCreated = false;
@@ -18,6 +17,7 @@ function handleDropzone() {
         autoProcessQueue: false,
         addRemoveLinks: true,
         previewsContainer: 'div#previews',
+        previewTemplate: document.getElementById('preview_template').innerHTML,
         uploadMultiple: false,
     });
     indexDropzone.on('addedfile', function(f) {
@@ -37,7 +37,7 @@ function handleDropzone() {
                 indexDropzone.processQueue();
             });
             // render the Uploading UI
-            document.getElementById('index_ui').classList.toggle('hidden');
+            document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
         }
     });
@@ -48,6 +48,5 @@ function handleDropzone() {
             document.getElementById('abort_upload').classList.toggle('hidden');
             document.getElementById('start_churn').classList.toggle('hidden');
         }
-
     });
 }

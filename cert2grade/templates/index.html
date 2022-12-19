@@ -47,6 +47,9 @@
         padding: 50px;
         text-align: center;
     }
+    #previews {
+        border: 1px solid red;
+    }
 </style>
 {% endblock %}
 
@@ -102,6 +105,17 @@
             <button id="abort_upload">abort</button>
             <button id="start_churn" class="hidden">churn</button>
         </div>
-        <div id="previews" class="dropzone-previews"></div>
-    </div>   
+        <div id="previews" class="dropzone-previews">
+            <div id="preview_template" class="dz-preview dz-file-preview hidden">
+                <div class="dz-filename" data-dz-name></div>
+                <input type="checkbox" unchecked>
+                <img src="https://picsum.photos/seed/picsum/200" data-dz-thumbnail />
+                <div class="dz-progress">
+                    <span class="dz-upload" data-dz-uploadprogress></span>
+                    <div id="progress_text"><span id="uploaded_size"></span>/<span class="dz-size" data-dz-size></span></div>
+                </div>
+                <div class="dz-error-message"><span data-dz-errormessage></span></div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
