@@ -1,6 +1,7 @@
 import json
 import shortuuid
 import os
+import shutil
 from datetime import datetime
 from threading import Lock
 from flask import (
@@ -93,11 +94,12 @@ def upload(req_code):
     
     # if all chunks downloaded, concat and save
     if completed:
-        filepath = os.path.join()
         with open(filepath, 'ab') as f:
             for chunk_index in range(dztotalchunkcount):
-                f.write((os.path.join(chunk_save_dir, chunk_index)).read_bytes())
-        os.rmdir(chunk_save_dir)
+                curr_chunkpath = os.path.join(chunk_save_dir, str(chunk_index))
+                with open(curr_chunkpath, 'rb') as c: 
+                    f.write(c.read())
+        shutil.rmtree(chunk_save_dir)
     return 'chunk_file_upload_successful'
 
 @bp.post('/delete_req')
@@ -120,7 +122,7 @@ def delete_req():
         for code in req_codes:
             print(req_codes)
             print(os.path.join(current_app.instance_path, 'files', code))
-            os.rmdir(os.path.join(current_app.instance_path, 'files', code))
+            shutil.rmtree(os.path.join(current_app.instance_path, 'files', code))
     except:
         success = False
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
