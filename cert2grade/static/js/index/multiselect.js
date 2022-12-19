@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 document.addEventListener('keydown', (event) => {
     let e = event || window.event;
-    if (e.key == "Escape") clearAll();
+    if (e.key == 'Escape') clearAll();
+    if (e.key == 'Delete') deleteReq();
 });
 document.addEventListener('click', (event) => {
     let e = event || window.event;
@@ -92,7 +93,7 @@ function updateDeleteReqBtn() {
         deleteReqBtn.classList.remove('hidden');
         deleteReqBtn.textContent = `delete ${total} entr${(total == 1) ? 'y' : 'ies'}`;
     } else {
-        deleteReqBtn.classList.add('hidden');
+        deleteReqBtn.classList.add('hidden'); 
     }
 }
 

@@ -14,10 +14,10 @@ CREATE TABLE requests (
     request_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     code TEXT UNIQUE NOT NULL,
-    timestamp INTEGER NOT NULL,
+    start_timestamp INTEGER NOT NULL,
     files INTEGER NOT NULL,
     size REAL NOT NULL, 
-    duration REAL NOT NULL,
+    end_timestamp INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES user(user_id)
 );
 

@@ -2,6 +2,7 @@ import json
 import shortuuid
 import os
 import shutil
+from collections import defaultdict
 from datetime import datetime
 from threading import Lock
 from flask import (
@@ -16,19 +17,27 @@ from cert2grade.db import get_db
 
 bp = Blueprint('dashboard', __name__)
 lock = Lock()
+chunks = defaultdict(list)
 
 @bp.route('/')
 @login_required
 def index():
     db = get_db()
     req_history = db.execute(
-        'SELECT * FROM requests WHERE user_id = ? ORDER BY timestamp DESC', (session['user_id'],)
+        'SELECT * FROM requests WHERE user_id = ? ORDER BY start_timestamp DESC', (session['user_id'],)
     ).fetchall()
     json_req_history = [dict((req.keys()[k],v) for k,v in enumerate(req)) for req in req_history]
     for req in json_req_history:
-        int_timestamp = req['timestamp']
-        formatted_timestamp = datetime.fromtimestamp(int_timestamp).strftime('%d-%m-%Y %H:%M:%S')
-        req['timestamp'] = formatted_timestamp
+        start_timestamp = datetime.fromtimestamp(req['start_timestamp'])
+        if req['end_timestamp'] == -1:
+            req['duration'] = 'awaiting user input'
+        elif req['end_timestamp'] == 0:
+            req['duration'] = 'in progress'
+        else:
+            end_timestamp = datetime.fromtimestamp(req['end_timestamp'])
+            req['duration'] = f"{(end_timestamp - start_timestamp).total_seconds()}s"
+        req['timestamp'] = start_timestamp.strftime('%d-%m-%Y %H:%M:%S')
+
     return render_template('index.html', req_history=json_req_history)
 
 @bp.post('/create_req')
@@ -39,8 +48,8 @@ def create_req():
     timestamp = datetime.now().timestamp()
     files = -1 # not sure of the number of files yet
     size = '' # not sure of the full size yet
-    duration = -1 # hasn't started 
-    query = 'INSERT INTO requests (user_id, code, timestamp, files, size, duration) VALUES (?, ?, ?, ?, ?, ?)'
+    end_timestamp = -1 # hasn't started 
+    query = 'INSERT INTO requests (user_id, code, start_timestamp, files, size, end_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
     payload = {
         'success': True,
         'code': req_code
@@ -48,7 +57,7 @@ def create_req():
     try:
         # create the entry in the db
         db = get_db()
-        db.execute(query, (user_id, req_code, timestamp, files, size, duration))
+        db.execute(query, (user_id, req_code, timestamp, files, size, end_timestamp))
         db.commit()
 
         # create the req's files folder, and the temp folder to store chunks
@@ -90,16 +99,17 @@ def upload(req_code):
 
     # check if all chunks downloaded
     with lock:
-        completed = len(os.listdir(chunk_save_dir)) == dztotalchunkcount
-    
-    # if all chunks downloaded, concat and save
+        chunks[request.form['dzuuid']].append(int(request.form['dzchunkindex']))
+        completed = len(chunks[request.form['dzuuid']]) == dztotalchunkcount
+        # if all chunks downloaded, concat and save
     if completed:
         with open(filepath, 'ab') as f:
             for chunk_index in range(dztotalchunkcount):
                 curr_chunkpath = os.path.join(chunk_save_dir, str(chunk_index))
                 with open(curr_chunkpath, 'rb') as c: 
                     f.write(c.read())
-        shutil.rmtree(chunk_save_dir)
+            shutil.rmtree(chunk_save_dir)
+        del chunks[request.form['dzuuid']]
     return 'chunk_file_upload_successful'
 
 @bp.post('/delete_req')
@@ -120,8 +130,6 @@ def delete_req():
         
         # delete the entries from the filesystem
         for code in req_codes:
-            print(req_codes)
-            print(os.path.join(current_app.instance_path, 'files', code))
             shutil.rmtree(os.path.join(current_app.instance_path, 'files', code))
     except:
         success = False

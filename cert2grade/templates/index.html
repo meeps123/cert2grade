@@ -3,10 +3,10 @@
 {% block specific_stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone_basic.css') }}">
 <style>
-    .req_history_header {
+    .header_with_btn {
         position: relative;
     }
-    .req_history_header button {
+    .header_with_btn button {
         position: absolute;
         right: 0px;
         bottom: 0px;
@@ -61,37 +61,47 @@
 {% endblock %}
 
 {% block content %}
-    <br>
-    <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
-    <br>
-    <div class="req_history_header">
-        <h1>request history</h1>
-        <button id="delete_req_btn" class="hidden"></button>
-    </div>
-    <div id="req_history" class="req_history">
-        {% for message in get_flashed_messages() %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
-        <div class="req_entry_wrapper_title">
-            <div class="req_code">code</div>
-            <div class="req_timestamp">timestamp</div>
-            <div class="req_size">size</div>
-            <div class="req_duration">duration</div>
+    <div id="index_ui">
+        <br>
+        <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
+        <br>
+        <div class="header_with_btn">
+            <h1>request history</h1>
+            <button id="delete_req_btn" class="hidden"></button>
         </div>
-        {% for req in req_history %}
-            <div class="req_entry_row">
-                <input type="checkbox" onclick="reqCheckboxClick(event, this, true)" unchecked>
-                <div class="req_entry_wrapper" onclick="reqClick(event, this, false)" rowindex="{{ loop.index0 }}">
-                    <div class="req_code">{{ req["code"] }}</div>
-                    <div class="req_timestamp">{{ req["timestamp"] }}</div>
-                    <div class="req_size">{{ req["files"] }} files ({{ req["size"] }}MB)</div>
-                    <div class="req_duration">{{ req["duration"] }}s</div>
-                </div>
-                {% if not loop.last %}
-                    <hr>
-                {% endif %}
+        <div id="req_history" class="req_history">
+            {% for message in get_flashed_messages() %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+            <div class="req_entry_wrapper_title">
+                <div class="req_code">code</div>
+                <div class="req_timestamp">timestamp</div>
+                <div class="req_size">size</div>
+                <div class="req_duration">duration</div>
             </div>
-        {% endfor %}
+            {% for req in req_history %}
+                <div class="req_entry_row">
+                    <input type="checkbox" onclick="reqCheckboxClick(event, this, true)" unchecked>
+                    <div class="req_entry_wrapper" onclick="reqClick(event, this, false)" rowindex="{{ loop.index0 }}">
+                        <div class="req_code">{{ req["code"] }}</div>
+                        <div class="req_timestamp">{{ req["timestamp"] }}</div>
+                        <div class="req_size">{{ req["files"] }} files ({{ req["size"] }}MB)</div>
+                        <div class="req_duration">{{ req["duration"] }}</div>
+                    </div>
+                    {% if not loop.last %}
+                        <hr>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
     </div>
-   
+    <div id="upload_ui" class="hidden">
+        <span id="req_code" class="req_code_display">testing123</span>
+        <div class="header_with_btn">
+            <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
+            <button id="abort_upload">abort</button>
+            <button id="start_churn" class="hidden">churn</button>
+        </div>
+        <div id="previews" class="dropzone-previews"></div>
+    </div>   
 {% endblock %}
