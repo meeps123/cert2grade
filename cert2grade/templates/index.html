@@ -42,6 +42,11 @@
         display: inline-block;
         width: 20%;
     }
+    .dropzone {
+        background-color: cyan;
+        padding: 50px;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
@@ -49,23 +54,15 @@
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
-    let DROPZONE = new Dropzone('div#file_upload', {
-        acceptedFiles: 'application/pdf',
-        autoProcessQueue: false
-    });
+    Dropzone.autoDiscover = false;
 </script>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>    
+<script src="{{ url_for('static', filename='js/index/multiselect.js') }}"></script>
+<script src="{{ url_for('static', filename='js/index/file.js') }}"></script>    
 {% endblock %}
 
 {% block content %}
-    <h1>upload files here</h1>
-    <form 
-        id="file_upload" 
-        method="post" 
-        class="dropzone"
-        enctype="multipart/form-data" 
-        action="{{ url_for('dashboard.create_req') }}">
-    </form>
+    <br>
+    <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
     <br>
     <div class="req_history_header">
         <h1>request history</h1>

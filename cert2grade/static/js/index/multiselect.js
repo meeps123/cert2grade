@@ -1,7 +1,6 @@
 var reqHistoryDiv;
 var lastSelectedEntry;
 var allReqEntries = document.getElementsByClassName('req_entry_wrapper');
-var sameEntryToggle = false;
 var selectedReqMask;
 var deleteReqBtn;
 
