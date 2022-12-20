@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 from threading import Lock
 from flask import (
-    Blueprint, flash, current_app, g, redirect, render_template, request, session, url_for
+    Blueprint, current_app, render_template, request, session, jsonify
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -94,14 +94,14 @@ def upload(req_code):
     req_folder = os.path.join(current_app.instance_path,'files', req_code)
     req_chunks_folder = os.path.join(req_folder, 'chunks')
     filepath = os.path.join(req_folder, secure_filename(file.filename))
-    query = 'INSERT INTO files (request_id, filepath) VALUES (? ,?)'
+    query = 'INSERT INTO files (request_id, filepath, size) VALUES (?, ?, ?)'
 
     # if file is small enough that it doesn't get chunked
     # we can just save it directly and add to db
     if dztotalchunkcount == 1:
         with open(filepath, 'wb') as f:
             file.save(f)
-        db.execute(query, (request_id, filepath))
+        db.execute(query, (request_id, filepath, int(request.form['dztotalfilesize'])))
         db.commit()
         return 'file_saved_successfully'
 
@@ -126,7 +126,7 @@ def upload(req_code):
                     f.write(c.read())
             shutil.rmtree(chunk_save_dir)
         del chunks[request.form['dzuuid']]
-        db.execute(query, (request_id, filepath))
+        db.execute(query, (request_id, filepath, int(request.form['dztotalfilesize'])))
         db.commit()
     return 'chunk_file_upload_successful'
 
@@ -171,6 +171,7 @@ def delete_req():
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
 
 @bp.route('/req/<req_code>', methods=['GET', 'POST'])
+@login_required
 def show_req(req_code):
     code = escape(req_code)
     db = get_db()
@@ -192,7 +193,17 @@ def show_req(req_code):
         return render_template('view_results.html', req_code=code, files=files)
     elif req['end_timestamp'] == -1:
         # in the pre-churn phase
-        return render_template('upload.html', req_code=code)
+        existing_files = []
+        # existing_blobs = []
+        for file in files:
+            existing_files.append({
+                'name': file['filepath'].split('\\')[-1],
+                'size': file['size'],
+            })
+            # existing_blobs.append(file['preview'])
+        print(existing_files)
+        # print(existing_blobs)
+        return render_template('upload.html', req_code=code, existing_files=existing_files)
     elif req['end_timestamp'] == 0:
         # in the churning phase
-        return render_template('churn.html', req_code=code)
+        return render_template('churn.html', req_code=code, files=files)

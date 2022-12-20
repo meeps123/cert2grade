@@ -15,7 +15,6 @@ function handleDropzone() {
         parallelChunkUploads: 10,
         acceptedFiles: 'application/pdf',
         autoProcessQueue: false,
-        addRemoveLinks: true,
         previewsContainer: 'div#previews',
         previewTemplate: document.getElementById('preview_template').innerHTML,
         uploadMultiple: false,

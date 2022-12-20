@@ -18,8 +18,11 @@
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
+    const REQ_CODE = '{{ req_code }}';
+    var existing_files = {{ existing_files|tojson|safe }};
     Dropzone.autoDiscover = false;
 </script>
+<script src="{{ url_for('static', filename='js/upload/file.js') }}"></script>    
 {% endblock %}
 
 {% block content %}
@@ -29,7 +32,7 @@
         <button id="abort_upload">abort</button>
         <button id="start_churn" class="hidden">churn</button>
     </div>
-    <div id="previews" class="dropzone-previews">
+    <div id="upload_dropzone" class="dropzone">
     </div>
     <div id="preview_template" class="hidden">
         <div class="dz-preview dz-file-preview">

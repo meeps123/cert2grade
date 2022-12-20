@@ -25,6 +25,7 @@ CREATE TABLE files (
     file_id INTEGER PRIMARY KEY AUTOINCREMENT, 
     request_id INTEGER NOT NULL,
     filepath TEXT NOT NULL,
+    size REAL NOT NULL,
     preview BLOB,
     hsp TEXT,
     status TEXT ,
