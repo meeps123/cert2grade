@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block specific_stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone_basic.css') }}">
+<style>
+    .header_with_btn {
+        position: relative;
+    }
+    .header_with_btn button {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+    }
+</style>
+{% endblock %}
+
+{% block specific_scripts %}
+<script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+<script>
+    const SCRIPT_ROOT = {{ request.script_root|tojson }};
+    Dropzone.autoDiscover = false;
+</script>
+{% endblock %}
+
+{% block content %}
+    <span id="req_code" class="req_code_display">{{ req_code }}</span>
+    <div class="header_with_btn">
+        <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
+        <button id="abort_upload">abort</button>
+        <button id="start_churn" class="hidden">churn</button>
+    </div>
+    <div id="previews" class="dropzone-previews">
+    </div>
+    <div id="preview_template" class="hidden">
+        <div class="dz-preview dz-file-preview">
+            <div class="dz-filename">
+                <span data-dz-name></span>
+            </div>
+            <input type="checkbox" unchecked>
+            <img src="https://picsum.photos/seed/picsum/200" data-dz-thumbnail />
+            <div class="dz-progress">
+                <span class="dz-upload" data-dz-uploadprogress></span>
+                <div id="progress_text">
+                    <span id="uploaded_size">0.00MB</span>
+                    /
+                    <span class="dz-size" data-dz-size></span>
+                </div>
+            </div>
+            <div class="dz-error-message">
+                <span data-dz-errormessage></span>
+            </div>
+        </div>
+    </div>
+{% endblock %}

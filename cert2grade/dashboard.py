@@ -71,7 +71,20 @@ def create_req():
 @bp.post('/upload/<req_code>')
 @login_required
 def upload(req_code):
+    db = get_db()
+
+    # get the request code from the variable route
     req_code = escape(req_code)
+
+    # get the request id for the code
+    try:
+        request_id = db.execute(
+            'SELECT * FROM requests WHERE user_id = ? AND code = ?',
+            (session['user_id'], req_code)
+        ).fetchone()['request_id']
+    except:
+        # failed to get the request id
+        abort(404)
 
     file = request.files['file']
     if not file:
@@ -81,12 +94,15 @@ def upload(req_code):
     req_folder = os.path.join(current_app.instance_path,'files', req_code)
     req_chunks_folder = os.path.join(req_folder, 'chunks')
     filepath = os.path.join(req_folder, secure_filename(file.filename))
+    query = 'INSERT INTO files (request_id, filepath) VALUES (? ,?)'
 
     # if file is small enough that it doesn't get chunked
-    # we can just save it directly
+    # we can just save it directly and add to db
     if dztotalchunkcount == 1:
         with open(filepath, 'wb') as f:
             file.save(f)
+        db.execute(query, (request_id, filepath))
+        db.commit()
         return 'file_saved_successfully'
 
     # else, file is too big and will get chunked
@@ -101,7 +117,7 @@ def upload(req_code):
     with lock:
         chunks[request.form['dzuuid']].append(int(request.form['dzchunkindex']))
         completed = len(chunks[request.form['dzuuid']]) == dztotalchunkcount
-        # if all chunks downloaded, concat and save
+        # if all chunks downloaded, concat and save, add to db as well
     if completed:
         with open(filepath, 'ab') as f:
             for chunk_index in range(dztotalchunkcount):
@@ -110,25 +126,44 @@ def upload(req_code):
                     f.write(c.read())
             shutil.rmtree(chunk_save_dir)
         del chunks[request.form['dzuuid']]
+        db.execute(query, (request_id, filepath))
+        db.commit()
     return 'chunk_file_upload_successful'
 
 @bp.post('/delete_req')
 @login_required
 def delete_req():
     req_codes = request.form['req_codes'].split('|')
-    repl_str = '?,'*len(req_codes)
-    repl_str = repl_str[:-1]
-    query = 'DELETE FROM requests WHERE user_id = ? AND code IN (' + repl_str + ')'
     success = True
     try:
-        # delete the entries from the db
         db = get_db()
-        db.execute(query, (session['user_id'], *req_codes))
-        db.commit()
-        affectedRows = db.execute('SELECT changes()').fetchone()[0]
-        if affectedRows == 0: raise Exception
         
-        # delete the entries from the filesystem
+        # delete the request entry from the db
+        delete_req_query = 'DELETE FROM requests WHERE user_id = ? AND code = ?'
+        request_ids = []
+        for req_code in req_codes:
+            # first get the target request id
+            request_ids.append(
+                db.execute(
+                    'SELECT * FROM requests WHERE user_id = ? AND code = ?',
+                    (session['user_id'], req_code)
+                ).fetchone()['request_id']
+            )
+            # then delete the request
+            db.execute(delete_req_query, (session['user_id'], req_code))
+            db.commit()
+            affectedRows = db.execute('SELECT changes()').fetchone()[0]
+            if affectedRows == 0: raise Exception
+        
+        # delete the corresponding files entries from the db
+        delete_file_query = 'DELETE FROM files WHERE request_id = ?'
+        for request_id in request_ids:
+            db.execute(delete_file_query, (request_id,))
+            db.commit()
+            affectedRows = db.execute('SELECT changes()').fetchone()[0]
+            if affectedRows == 0: raise Exception
+
+        # delete the entire request folder from the filesystem
         for code in req_codes:
             shutil.rmtree(os.path.join(current_app.instance_path, 'files', code))
     except:
@@ -149,12 +184,15 @@ def show_req(req_code):
         # 1) the req code doesn't exist in the entire db
         # 2) the user's req don't have that code
         return render_template('404.html') 
-    if req['duration'] > 0:
+    files = db.execute(
+        'SELECT * FROM files WHERE request_id = ?', (req['request_id'],)
+    ).fetchall()
+    if req['end_timestamp'] > 0:
         # the req has completed
-        files = db.execute(
-            'SELECT * FROM files WHERE request_id = ?', (req['request_id'],)
-        ).fetchall()
         return render_template('view_results.html', req_code=code, files=files)
-    elif req['duration'] == -1:
+    elif req['end_timestamp'] == -1:
+        # in the pre-churn phase
+        return render_template('upload.html', req_code=code)
+    elif req['end_timestamp'] == 0:
         # in the churning phase
         return render_template('churn.html', req_code=code)
