@@ -96,7 +96,7 @@
                     <div class="req_entry_wrapper" onclick="reqClick(event, this, false)" rowindex="{{ loop.index0 }}">
                         <div class="req_code">{{ req["code"] }}</div>
                         <div class="req_timestamp">{{ req["timestamp"] }}</div>
-                        <div class="req_size">{{ req["files"] }} files ({{ req["size"] }}MB)</div>
+                        <div class="req_size">{{ req["size_str"] }}</div>
                         <div class="req_duration">{{ req["duration"] }}</div>
                     </div>
                     {% if not loop.last %}

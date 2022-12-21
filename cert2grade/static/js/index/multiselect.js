@@ -112,8 +112,7 @@ function deleteReq() {
     }
     let data = new FormData();
     data.append('req_codes', selectedReqCodes.join('|'));
-    let url = `${SCRIPT_ROOT}/delete_req`;
-    fetch(url, {
+    fetch(`${SCRIPT_ROOT}/delete_req`, {
         'method': 'POST',
         'body': data
     })

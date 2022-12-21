@@ -26,7 +26,7 @@ CREATE TABLE files (
     request_id INTEGER NOT NULL,
     filepath TEXT NOT NULL,
     size REAL NOT NULL,
-    preview BLOB,
+    thumbnail_filepath TEXT NOT NULL,
     hsp TEXT,
     status TEXT ,
     score REAL,

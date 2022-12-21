@@ -52,5 +52,23 @@ function handleDropzone() {
             document.getElementById('abort_upload').classList.toggle('hidden');
             document.getElementById('start_churn').classList.toggle('hidden');
         }
+
+        // update the request metadata in the database
+        totalReqSize = 0;
+        totalReqFiles = indexDropzone.files.length;
+        for (let i=0; i<totalReqFiles; i++) {
+            totalReqSize += indexDropzone.files[i].size;
+        }
+        let modifications = {
+            'files': totalReqFiles,
+            'size': totalReqSize
+        }
+        let data = new FormData();
+        data.append('req_code', reqCode);
+        data.append('modifications', JSON.stringify(modifications));
+        fetch(`${SCRIPT_ROOT}/update_req`, {
+            'method': 'POST',
+            'body': data
+        })
     });
 }
