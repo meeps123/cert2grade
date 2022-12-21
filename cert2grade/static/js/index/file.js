@@ -15,7 +15,6 @@ function handleDropzone() {
         parallelChunkUploads: 10,
         acceptedFiles: 'application/pdf',
         autoProcessQueue: false,
-        previewsContainer: 'div#previews',
         previewTemplate: document.getElementById('preview_template').innerHTML,
         uploadMultiple: false,
     });
@@ -35,7 +34,7 @@ function handleDropzone() {
                 indexDropzone.options.autoProcessQueue = true;
                 indexDropzone.processQueue();
             });
-            // render the Uploading UI once only
+            // render the uploading UI once only
             document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
         }

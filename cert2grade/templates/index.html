@@ -72,10 +72,38 @@
 {% endblock %}
 
 {% block content %}
+    <div id="upload_ui" class="hidden">
+        <span id="req_code" class="req_code_display">testing123</span>
+        <div class="header_with_btn">
+            <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
+            <button id="abort_upload">abort</button>
+            <button id="start_churn" class="hidden">churn</button>
+        </div>
+        <div id="preview_template" class="hidden">
+            <div class="dz-preview dz-file-preview">
+                <div class="dz-filename">
+                    <span data-dz-name></span>
+                </div>
+                <input type="checkbox" unchecked>
+                <img data-dz-thumbnail />
+                <div class="dz-progress">
+                    <span class="dz-upload" data-dz-uploadprogress></span>
+                    <div id="progress_text">
+                        <span id="uploaded_size">0.00MB</span>
+                        /
+                        <span class="dz-size" data-dz-size></span>
+                    </div>
+                </div>
+                <div class="dz-error-message">
+                    <span data-dz-errormessage></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
+    <br>
     <div id="index_ui">
-        <br>
-        <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
-        <br>
         <div class="header_with_btn">
             <h1>request history</h1>
             <button id="delete_req_btn" class="hidden"></button>
@@ -106,34 +134,5 @@
             {% endfor %}
         </div>
     </div>
-    <div id="upload_ui" class="hidden">
-        <span id="req_code" class="req_code_display">testing123</span>
-        <div class="header_with_btn">
-            <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
-            <button id="abort_upload">abort</button>
-            <button id="start_churn" class="hidden">churn</button>
-        </div>
-        <div id="previews" class="dropzone-previews">
-        </div>
-        <div id="preview_template" class="hidden">
-            <div class="dz-preview dz-file-preview">
-                <div class="dz-filename">
-                    <span data-dz-name></span>
-                </div>
-                <input type="checkbox" unchecked>
-                <img data-dz-thumbnail />
-                <div class="dz-progress">
-                    <span class="dz-upload" data-dz-uploadprogress></span>
-                    <div id="progress_text">
-                        <span id="uploaded_size">0.00MB</span>
-                        /
-                        <span class="dz-size" data-dz-size></span>
-                    </div>
-                </div>
-                <div class="dz-error-message">
-                    <span data-dz-errormessage></span>
-                </div>
-            </div>
-        </div>
-    </div>
+   
 {% endblock %}

@@ -73,7 +73,7 @@ def show_req(req_code):
         existing_files = []
         for file in files:
             existing_files.append({
-                'name': file['filepath'].split('\\')[-1],
+                'name': file['filename'],
                 'size': file['size'],
             })
         print(existing_files)
