@@ -59,10 +59,14 @@
 
 {% block specific_scripts %}
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pdf.js') }}"></script>
+
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ url_for('static', filename='js/pdf.worker.min.js') }}";
     Dropzone.autoDiscover = false;
 </script>
+<script src="{{ url_for('static', filename='js/thumbnail.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index/multiselect.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index/file.js') }}"></script>    
 {% endblock %}
@@ -117,7 +121,7 @@
                     <span data-dz-name></span>
                 </div>
                 <input type="checkbox" unchecked>
-                <img src="https://picsum.photos/seed/picsum/200" data-dz-thumbnail />
+                <img data-dz-thumbnail />
                 <div class="dz-progress">
                     <span class="dz-upload" data-dz-uploadprogress></span>
                     <div id="progress_text">

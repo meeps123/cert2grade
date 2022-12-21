@@ -21,6 +21,6 @@ function handleDropzone() {
         let f = existing_files[i];
         uploadDropzone.emit('addedfile', f);
         // uploadDropzone.emit('thumbnail', f, build the blob url)
-        uploadDropzone.emit('complete', f);
+        uploadDropzone.emit('success', f);
     }
 }

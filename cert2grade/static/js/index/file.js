@@ -22,7 +22,7 @@ function handleDropzone() {
     indexDropzone.on('addedfile', function(f) {
         // This gets run every time a file is added to the dropzone
         if (!reqCodeCreated) {
-            // Create the request
+            // Create the request once only
             reqCodeCreated = true;
             fetch(`${SCRIPT_ROOT}/create_req`, {
                 'method': 'POST'
@@ -35,10 +35,15 @@ function handleDropzone() {
                 indexDropzone.options.autoProcessQueue = true;
                 indexDropzone.processQueue();
             });
-            // render the Uploading UI
+            // render the Uploading UI once only
             document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
         }
+        // create the BLOB preview of the pdf
+        (async () => {
+            blob = await getThumbnail(f);
+            indexDropzone.emit('thumbnail', f, URL.createObjectURL(blob));        
+        })();
     });
     indexDropzone.on('queuecomplete', function(f) {
         // Run every time after the entire queue is done
