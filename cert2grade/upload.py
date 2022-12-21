@@ -21,7 +21,7 @@ chunks = defaultdict(list)
 def upload(req_code):
     db = get_db()
 
-    # get the request code from the variable route
+    # get the req code
     req_code = escape(req_code)
 
     # get the request id for the code
@@ -41,16 +41,16 @@ def upload(req_code):
     
     req_folder = os.path.join(current_app.instance_path,'files', req_code)
     req_chunks_folder = os.path.join(req_folder, 'chunks')
-    filepath = os.path.join(req_folder, secure_filename(file.filename))
-    thumbnail_filepath = os.path.join(req_folder, Path(secure_filename(file.filename)).stem + '_thumbnail.png')
-    query = 'INSERT INTO files (request_id, filepath, size, thumbnail_filepath) VALUES (?, ?, ?, ?)'
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(req_folder, filename)
+    query = 'INSERT INTO files (request_id, filename, size, has_thumbnail) VALUES (?, ?, ?, ?)'
 
     # if file is small enough that it doesn't get chunked
     # we can just save it directly and add to db
     if dztotalchunkcount == 1:
         with open(filepath, 'wb') as f:
             file.save(f)
-        db.execute(query, (request_id, filepath, int(request.form['dztotalfilesize']), thumbnail_filepath))
+        db.execute(query, (request_id, filename, int(request.form['dztotalfilesize']), 0))
         db.commit()
         return 'file_saved_successfully'
 
@@ -75,6 +75,40 @@ def upload(req_code):
                     f.write(c.read())
             shutil.rmtree(chunk_save_dir)
         del chunks[request.form['dzuuid']]
-        db.execute(query, (request_id, filepath, int(request.form['dztotalfilesize']), thumbnail_filepath))
+        db.execute(query, (request_id, filename, int(request.form['dztotalfilesize']), 0))
         db.commit()
     return 'chunk_file_upload_successful'
+
+@bp.post('/upload_thumbnail/<req_code>')
+@login_required
+def upload_thumbnail(req_code):
+    db = get_db()
+    
+    # get the req code
+    req_code = escape(req_code)
+
+    print(req_code)
+    print(request)
+    # get the thumbnail
+    thumbnail = request.files['file']
+    if not thumbnail:
+        abort(400) # no thumbnail provided
+
+    # save the thumbnail
+    thumbnail_path = os.path.join(
+        current_app.instance_path, 
+        'files', 
+        req_code, 
+        secure_filename(thumbnail.filename)
+    )
+    with open(thumbnail_path, 'wb') as f:
+        thumbnail.save(f)
+
+    # update the db to indicate that the thumbnail is present
+    corr_filename = secure_filename(thumbnail.filename).split('_thumbnail.png')[0] + '.pdf'
+    query = 'UPDATE files SET has_thumbnail = 1 WHERE filename = ?'
+    db.execute(query, (corr_filename,))
+    db.commit()
+
+    return 'thumbnail saved successfully'
+    

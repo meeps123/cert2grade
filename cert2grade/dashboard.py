@@ -71,15 +71,12 @@ def show_req(req_code):
     elif req['end_timestamp'] == -1:
         # in the pre-churn phase
         existing_files = []
-        # existing_blobs = []
         for file in files:
             existing_files.append({
                 'name': file['filepath'].split('\\')[-1],
                 'size': file['size'],
             })
-            # existing_blobs.append(file['preview'])
         print(existing_files)
-        # print(existing_blobs)
         return render_template('upload.html', req_code=code, existing_files=existing_files)
     elif req['end_timestamp'] == 0:
         # in the churning phase

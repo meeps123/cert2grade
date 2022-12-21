@@ -39,10 +39,21 @@ function handleDropzone() {
             document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
         }
-        // create the BLOB preview of the pdf
+        // create the BLOB thumbnail of the pdf
+        // upload the thumbnail to the server
         (async () => {
             blob = await getThumbnail(f);
-            indexDropzone.emit('thumbnail', f, URL.createObjectURL(blob));        
+            indexDropzone.emit('thumbnail', f, URL.createObjectURL(blob));
+            thumbnail_file = new File([blob], `${f.name.split('.')[0]}_thumbnail.png`, {
+                type: 'image/png'
+            });
+            let data = new FormData();
+            data.append('file', thumbnail_file);       
+            console.log(reqCode);
+            fetch(`${SCRIPT_ROOT}/upload_thumbnail/${reqCode}`, {
+                method: 'POST',
+                body: data
+            })
         })();
     });
     indexDropzone.on('queuecomplete', function(f) {

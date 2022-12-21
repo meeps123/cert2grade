@@ -24,9 +24,9 @@ CREATE TABLE requests (
 CREATE TABLE files (
     file_id INTEGER PRIMARY KEY AUTOINCREMENT, 
     request_id INTEGER NOT NULL,
-    filepath TEXT NOT NULL,
+    filename TEXT NOT NULL,
     size REAL NOT NULL,
-    thumbnail_filepath TEXT NOT NULL,
+    has_thumbnail INTEGER NOT NULL,
     hsp TEXT,
     status TEXT ,
     score REAL,
