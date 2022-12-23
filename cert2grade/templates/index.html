@@ -67,7 +67,8 @@
     Dropzone.autoDiscover = false;
 </script>
 <script src="{{ url_for('static', filename='js/thumbnail.js') }}"></script>
-<script src="{{ url_for('static', filename='js/index/multiselect.js') }}"></script>
+<script src="{{ url_for('static', filename='js/selectreq.js') }}"></script>
+<script src="{{ url_for('static', filename='js/selectfile.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index/file.js') }}"></script>    
 {% endblock %}
 
@@ -78,6 +79,7 @@
             <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
             <button id="abort_upload">abort</button>
             <button id="start_churn" class="hidden">churn</button>
+            <button id="delete_file_btn" class="hidden">delete</button>
         </div>
         <div id="preview_template" class="hidden">
             <div class="dz-preview dz-file-preview">

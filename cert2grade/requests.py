@@ -49,7 +49,7 @@ def delete_req():
     success = True
     try:
         db = get_db()
-        db.execute('PRAGMA FOREIGN_KEYS = ON')
+        db.execute('PRAGMA FOREIGN_KEYS = ON') # enable ON DELETE CASCADE behavior
 
         # delete the request entry from the db
         delete_req_query = 'DELETE FROM requests WHERE user_id = ? AND code = ?'
@@ -67,14 +67,8 @@ def delete_req():
             db.commit()
             affectedRows = db.execute('SELECT changes()').fetchone()[0]
             if affectedRows == 0: raise Exception
-        
-        # # delete the corresponding files entries from the db
-        # delete_file_query = 'DELETE FROM files WHERE request_id = ?'
-        # for request_id in request_ids:
-        #     db.execute(delete_file_query, (request_id,))
-        #     db.commit()
-        #     affectedRows = db.execute('SELECT changes()').fetchone()[0]
-        #     if affectedRows == 0: raise Exception
+
+        # Due to ON DELETE CASCADE it will auto-delete the files entries
 
         # delete the entire request folder from the filesystem
         for code in req_codes:

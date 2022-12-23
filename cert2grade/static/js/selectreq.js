@@ -4,7 +4,7 @@ var allReqEntries = document.getElementsByClassName('req_entry_wrapper');
 var selectedReqMask;
 var deleteReqBtn;
 
-document.onselectstart = () => {return false}
+document.onselectstart = () => {return false} // prevents text selection
 document.addEventListener('DOMContentLoaded', () => {
     selectedReqMask = new Array(allReqEntries.length).fill(false);
     deleteReqBtn = document.getElementById('delete_req_btn');
@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 document.addEventListener('keydown', (event) => {
     let e = event || window.event;
-    if (e.key == 'Escape') clearAll();
+    if (e.key == 'Escape') clearAllReqs();
     if (e.key == 'Delete') deleteReq();
 });
 document.addEventListener('click', (event) => {
     let e = event || window.event;
-    if (!reqHistoryDiv.contains(e.target)) clearAll();
+    if (!reqHistoryDiv.contains(e.target)) clearAllReqs();
 });
 
 function rowIndex(reqEntry) {
@@ -37,7 +37,7 @@ function toggleSelectReq(reqEntry) {
     updateDeleteReqBtn();
 }
 
-function clearAll() {
+function clearAllReqs() {
     for (let i=0; i<allReqEntries.length; i++) {
         allReqEntries[i].parentElement.classList.remove('req_entry_row_selected');
         allReqEntries[i].previousElementSibling.checked = false;
@@ -66,7 +66,7 @@ function reqClick(event, reqEntry, fromCheckbox) {
         if (e.ctrlKey) toggleSelectReq(reqEntry);
         if (e.button === 0 || fromCheckbox) {
             if (!e.ctrlKey && !e.shiftKey) {
-                if (reqEntry != lastSelectedEntry || sumMask(selectedReqMask) > 1) clearAll();
+                if (reqEntry != lastSelectedEntry || sumMask(selectedReqMask) > 1) clearAllReqs();
                 toggleSelectReq(reqEntry);
             }
             if (e.shiftKey) {

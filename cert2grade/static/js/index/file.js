@@ -20,8 +20,16 @@ function handleDropzone() {
     });
     indexDropzone.on('addedfile', function(f) {
         // This gets run every time a file is added to the dropzone
+    
+        // hide the churn button and show the abort button
+        if (churnBtnShown) {
+            churnBtnShown = false;
+            document.getElementById('abort_upload').classList.toggle('hidden');
+            document.getElementById('start_churn').classList.toggle('hidden');
+        }
+
+        // Create the request once only
         if (!reqCodeCreated) {
-            // Create the request once only
             reqCodeCreated = true;
             fetch(`${SCRIPT_ROOT}/create_req`, {
                 'method': 'POST'
@@ -38,6 +46,7 @@ function handleDropzone() {
             document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
         }
+
         // create the BLOB thumbnail of the pdf
         // upload the thumbnail to the server
         (async () => {
@@ -48,14 +57,16 @@ function handleDropzone() {
             });
             let data = new FormData();
             data.append('file', thumbnail_file);       
-            console.log(reqCode);
             fetch(`${SCRIPT_ROOT}/upload_thumbnail/${reqCode}`, {
                 method: 'POST',
                 body: data
             })
         })();
+
+        // block the file selection
+        f.previewElement.removeEventListener('click', fileClick);
     });
-    indexDropzone.on('queuecomplete', function(f) {
+    indexDropzone.on('queuecomplete', () => {
         // Run every time after the entire queue is done
         if (!churnBtnShown) {
             churnBtnShown = true;
@@ -63,11 +74,19 @@ function handleDropzone() {
             document.getElementById('start_churn').classList.toggle('hidden');
         }
 
+        // rebuild the list of file entries
+        buildFileEntriesList('dz-complete');
+        allFileEntries = document.getElementsByClassName('dz-complete');
+        selectedFileMask = new Array(allFileEntries.length).fill(false);
+
         // update the request metadata in the database
         totalReqSize = 0;
         totalReqFiles = indexDropzone.files.length;
         for (let i=0; i<totalReqFiles; i++) {
             totalReqSize += indexDropzone.files[i].size;
+            // at the same time add the onclick listeners to the file previews to enable selection
+            previewElement = indexDropzone.files[i].previewElement;
+            previewElement.addEventListener('click', fileClick.bind(previewElement, event, previewElement));
         }
         let modifications = {
             'files': totalReqFiles,
