@@ -18,7 +18,9 @@ CREATE TABLE requests (
     files INTEGER NOT NULL,
     size REAL NOT NULL, 
     end_timestamp INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES user(user_id)
+    CONSTRAINT user_id_fk
+        FOREIGN KEY (user_id) 
+        REFERENCES user(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE files (
@@ -32,5 +34,7 @@ CREATE TABLE files (
     score REAL,
     type TEXT,
     remarks TEXT,
-    FOREIGN KEY(request_id) REFERENCES requests(request_id)
+    CONSTRAINT request_id_fk
+        FOREIGN KEY (request_id)
+        REFERENCES requests(request_id) ON DELETE CASCADE
 );

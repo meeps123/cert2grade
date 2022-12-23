@@ -49,7 +49,8 @@ def delete_req():
     success = True
     try:
         db = get_db()
-        
+        db.execute('PRAGMA FOREIGN_KEYS = ON')
+
         # delete the request entry from the db
         delete_req_query = 'DELETE FROM requests WHERE user_id = ? AND code = ?'
         request_ids = []
@@ -67,18 +68,19 @@ def delete_req():
             affectedRows = db.execute('SELECT changes()').fetchone()[0]
             if affectedRows == 0: raise Exception
         
-        # delete the corresponding files entries from the db
-        delete_file_query = 'DELETE FROM files WHERE request_id = ?'
-        for request_id in request_ids:
-            db.execute(delete_file_query, (request_id,))
-            db.commit()
-            affectedRows = db.execute('SELECT changes()').fetchone()[0]
-            if affectedRows == 0: raise Exception
+        # # delete the corresponding files entries from the db
+        # delete_file_query = 'DELETE FROM files WHERE request_id = ?'
+        # for request_id in request_ids:
+        #     db.execute(delete_file_query, (request_id,))
+        #     db.commit()
+        #     affectedRows = db.execute('SELECT changes()').fetchone()[0]
+        #     if affectedRows == 0: raise Exception
 
         # delete the entire request folder from the filesystem
         for code in req_codes:
             shutil.rmtree(os.path.join(current_app.instance_path, 'files', code))
-    except:
+    except Exception as e:
+        print(e)
         success = False
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
 
