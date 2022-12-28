@@ -65,7 +65,6 @@ function selectFilesBetweenIndices(indices) {
 
 function fileClick(event, fileEntry, allowOpenFile=false) {
     let e = event || window.event;
-    console.log(fileEntry);
     if (e.detail == 1) {
         if (e.ctrlKey && e.shiftKey) {
             selectFilesBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(fileEntry)]);
@@ -83,6 +82,10 @@ function fileClick(event, fileEntry, allowOpenFile=false) {
     } else if (event.detail == 2 && allowOpenFile) {
         openFile(fileEntry);
     }
+}
+
+function fileCheckboxClick(event, fileEntryCheckbox) {
+    fileEntryCheckbox.checked = !fileEntryCheckbox.checked;
 }
 
 function sumMask(mask) {
@@ -105,13 +108,13 @@ function openFile(fileEntry) {
 }
 
 function deleteFile() {
-    // selectedReqCodes = [];
-    // for (let i=0; i<allFileEntries.length; i++) {
-    //     if (selectedFileMask[i]) {
-    //         code = allFileEntries[i].firstElementChild.textContent;
-    //         selectedReqCodes.push(code);
-    //     }
-    // }
+    selectedFiles = [];
+    for (let i=0; i<allFileEntries.length; i++) {
+        if (selectedFileMask[i]) {
+            code = allFileEntries[i].firstElementChild.textContent;
+            selectedReqCodes.push(code);
+        }
+    }
     // let data = new FormData();
     // data.append('req_codes', selectedReqCodes.join('|'));
     // fetch(`${SCRIPT_ROOT}/delete_req`, {

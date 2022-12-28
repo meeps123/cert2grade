@@ -91,6 +91,8 @@ function handleDropzone() {
             // at the same time add the onclick listeners to the file previews to enable selection
             previewElement = indexDropzone.files[i].previewElement;
             previewElement.addEventListener('click', fileClick.bind(previewElement, event, previewElement));
+            previewElementCheckbox = previewElement.children[1];
+            previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox, event, previewElementCheckbox));
         }
         let modifications = {
             'files': totalReqFiles,
