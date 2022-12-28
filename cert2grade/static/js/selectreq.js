@@ -61,7 +61,7 @@ function selectRowsBetweenIndices(indices) {
     updateDeleteReqBtn();
 }
 
-function reqClick(fromCheckbox) {
+function reqClick(fromCheckbox=false) {
     let e = event || window.event;
     if (e.detail == 1 || fromCheckbox) {
         if (e.ctrlKey && e.shiftKey) {

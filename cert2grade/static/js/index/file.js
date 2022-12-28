@@ -69,9 +69,6 @@ function handleDropzone() {
                 body: data
             })
         })();
-
-        // block the file selection
-        f.previewElement.removeEventListener('click', fileClick);
     });
     indexDropzone.on('queuecomplete', () => {
         // Run every time after the entire queue is done
@@ -91,10 +88,14 @@ function handleDropzone() {
             totalReqSize += indexDropzone.files[i].size;
             // at the same time add the onclick listeners to the file previews to enable selection
             previewElement = indexDropzone.files[i].previewElement;
-            previewElement.addEventListener('click', fileClick.bind(previewElement));
-            previewElementCheckbox = previewElement.children[1];
-            previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox));
-        }
+            hasListener = !!previewElement.getAttribute('data-listener-attached'); 
+            if (!hasListener) {
+                previewElement.addEventListener('click', fileClick.bind(previewElement));
+                previewElementCheckbox = previewElement.children[1];
+                previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox));
+                previewElement.setAttribute('data-listener-attached', true);
+            }
+          }
         let modifications = {
             'files': totalReqFiles,
             'size': totalReqSize

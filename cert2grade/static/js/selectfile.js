@@ -80,7 +80,8 @@ function fileClick(allowOpenFile=false) {
             }
         }
     } else if (e.detail == 2 && allowOpenFile) {
-        openFile(this);
+        console.log(allowOpenFile);
+        // openFile(this);
     }
 }
 
@@ -119,13 +120,13 @@ function deleteFile(reqCode) {
     // get list of selected filenames
     selectedFilenames = [];
     selectedFiles.forEach(file => {
-        selectedFilenames.append(file.name);
+        selectedFilenames.push(file.name);
     });
 
     // delete selected files from the server side
     let data = new FormData();
     data.append('req_code', reqCode);
-    data.append('filenames', selectedFilenames);
+    data.append('filenames', JSON.stringify(selectedFilenames));
     fetch(`${SCRIPT_ROOT}/delete_file`, {
         'method': 'POST',
         'body': data
@@ -133,6 +134,10 @@ function deleteFile(reqCode) {
     .then(response => response.json())
     .then(data => {
         // remove only those files which were successfully deleted on the server side
-        console.log(data);
+        if (data['success']) {
+            selectedFiles.forEach(file => indexDropzone.removeFile(file));
+            indexDropzone.emit('queuecomplete');
+            updateDeleteFileBtn();
+        }
     });
 }

@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 from collections import defaultdict
 from threading import Lock
 from flask import (
@@ -26,7 +27,7 @@ def upload_file(req_code):
 
     # get the request id for the code
     try:
-        request_id = db.execute(
+        req_id = db.execute(
             'SELECT * FROM requests WHERE user_id = ? AND code = ?',
             (session['user_id'], req_code)
         ).fetchone()['request_id']
@@ -50,7 +51,7 @@ def upload_file(req_code):
     if dztotalchunkcount == 1:
         with open(filepath, 'wb') as f:
             file.save(f)
-        db.execute(query, (request_id, filename, int(request.form['dztotalfilesize']), 0))
+        db.execute(query, (req_id, filename, int(request.form['dztotalfilesize']), 0))
         db.commit()
         return 'file_saved_successfully'
 
@@ -114,8 +115,37 @@ def upload_thumbnail(req_code):
 @login_required
 def delete_file():
     db = get_db()
-
+    
     # get the JSON data that was sent over
-    print(request.form)
+    req_code = request.form['req_code']
+    filenames = json.loads(request.form['filenames'])
 
-    return 'files deleted successfully'
+    success = True
+
+    # get the request id for the code
+    try:
+        req_id = db.execute(
+            'SELECT * FROM requests WHERE user_id = ? AND code = ?',
+            (session['user_id'], req_code)
+        ).fetchone()['request_id']
+    except:
+        # failed to get the request id
+        abort(400)
+    
+    # form the delete query
+    delete_file_query = 'DELETE FROM files WHERE request_id = ? AND filename IN ('
+    delete_file_query = delete_file_query + '?, ' * len(filenames)
+    delete_file_query = f"{delete_file_query[:-2]})"
+
+    # execute the delete query
+    try:
+        db.execute(delete_file_query, (req_id, *filenames))
+        db.commit()
+        affectedRows = db.execute('SELECT changes()').fetchone()[0]
+        if affectedRows == 0: raise Exception
+    except Exception as e:
+        print(delete_file_query)
+        print(e)
+        success = False
+
+    return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
