@@ -80,9 +80,9 @@
 
 {% block content %}
     <div id="upload_ui" class="hidden">
-        <span id="req_code" class="req_code_display">testing123</span>
+        <span id="req_code" class="req_code_display">#xxxxxx</span>
         <div class="header_with_btn">
-            <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
+            <h1 id="overall_upload_status">uploading...</h1>
             <button id="abort_upload">abort</button>
             <button id="start_churn" class="hidden">churn</button>
             <button id="delete_file_btn" class="hidden">delete</button>
@@ -109,7 +109,11 @@
         </div>
     </div>
     <br>
-    <div id="index_dropzone" class="dropzone">drag & drop PDFs / folder of PDFs to begin</div>
+    <div id="index_dropzone" class="dropzone">
+        <div id='dropzone_prompt' class="dz-message">
+            drag & drop PDFs / folder of PDFs to begin
+        </div>
+    </div>
     <br>
     <div id="index_ui">
         <div class="header_with_btn">

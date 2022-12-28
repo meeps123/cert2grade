@@ -28,6 +28,9 @@ function handleDropzone() {
             document.getElementById('start_churn').classList.toggle('hidden');
         }
 
+        // set the upload status to uploading...
+        document.getElementById('overall_upload_status').textContent = 'uploading...';
+
         // Create the request once only
         if (!reqCodeCreated) {
             reqCodeCreated = true;
@@ -41,17 +44,19 @@ function handleDropzone() {
                 indexDropzone.options.url = `${SCRIPT_ROOT}/upload_file/${reqCode}`;
                 indexDropzone.options.autoProcessQueue = true;
                 indexDropzone.processQueue();
-
-                // render the uploading UI once only
-                document.getElementById('index_ui').remove();
-                document.getElementById('upload_ui').classList.toggle('hidden');
-                // detach the event listeners for request selection once only
-                document.removeEventListener('keydown', handleDocumentKeydownForReqs);
-                document.removeEventListener('click', handleDocumentClickForReqs);
                 // attach the new event listeners for file selection once only
                 document.addEventListener('keydown', handleDocumentKeydownForFiles.bind(null, reqCode));
                 document.addEventListener('click', handleDocumentClickForFiles);
+                // set the req code at the top of page
+                document.getElementById('req_code').textContent = `#${reqCode}`;
             });
+            // render the uploading UI once only
+            document.getElementById('index_ui').remove();
+            document.getElementById('dropzone_prompt').remove();
+            document.getElementById('upload_ui').classList.toggle('hidden');
+            // detach the event listeners for request selection once only
+            document.removeEventListener('keydown', handleDocumentKeydownForReqs);
+            document.removeEventListener('click', handleDocumentClickForReqs);
         }
 
         // create the BLOB thumbnail of the pdf
@@ -81,6 +86,9 @@ function handleDropzone() {
         // rebuild the list of file entries
         buildFileEntriesList('dz-complete', reqCode);
 
+        // update the header to show how mamy files uploaded
+        document.getElementById('overall_upload_status').textContent = `uploaded ${indexDropzone.files.length} file${indexDropzone.files.length == 1 ? '' : 's'}`;
+
         // update the request metadata in the database
         totalReqSize = 0;
         totalReqFiles = indexDropzone.files.length;
@@ -90,7 +98,7 @@ function handleDropzone() {
             previewElement = indexDropzone.files[i].previewElement;
             hasListener = !!previewElement.getAttribute('data-listener-attached'); 
             if (!hasListener) {
-                previewElement.addEventListener('click', fileClick.bind(previewElement));
+                previewElement.addEventListener('click', fileClick.bind(previewElement, false));
                 previewElementCheckbox = previewElement.children[1];
                 previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox));
                 previewElement.setAttribute('data-listener-attached', true);
