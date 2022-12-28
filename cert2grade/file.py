@@ -12,13 +12,13 @@ from pathlib import Path
 from cert2grade.auth import login_required
 from cert2grade.db import get_db
 
-bp = Blueprint('upload', __name__)
+bp = Blueprint('file', __name__)
 lock = Lock()
 chunks = defaultdict(list)
 
-@bp.post('/upload/<req_code>')
+@bp.post('/upload_file/<req_code>')
 @login_required
-def upload(req_code):
+def upload_file(req_code):
     db = get_db()
 
     # get the req code
@@ -87,8 +87,6 @@ def upload_thumbnail(req_code):
     # get the req code
     req_code = escape(req_code)
 
-    print(req_code)
-    print(request)
     # get the thumbnail
     thumbnail = request.files['file']
     if not thumbnail:
@@ -112,3 +110,12 @@ def upload_thumbnail(req_code):
 
     return 'thumbnail saved successfully'
     
+@bp.post('/delete_file/')
+@login_required
+def delete_file():
+    db = get_db()
+
+    # get the JSON data that was sent over
+    print(request.form)
+
+    return 'files deleted successfully'

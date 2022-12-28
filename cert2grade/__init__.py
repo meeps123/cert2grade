@@ -34,8 +34,8 @@ def create_app(test_config=None):
     app.register_blueprint(dashboard.bp)
     app.add_url_rule('/', endpoint='index')
 
-    from . import upload
-    app.register_blueprint(upload.bp)
+    from . import file
+    app.register_blueprint(file.bp)
 
     from . import requests
     app.register_blueprint(requests.bp)

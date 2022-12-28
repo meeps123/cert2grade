@@ -61,30 +61,30 @@ function selectRowsBetweenIndices(indices) {
     updateDeleteReqBtn();
 }
 
-function reqClick(event, reqEntry, fromCheckbox) {
+function reqClick(fromCheckbox) {
     let e = event || window.event;
     if (e.detail == 1 || fromCheckbox) {
         if (e.ctrlKey && e.shiftKey) {
-            selectRowsBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(reqEntry)]);
+            selectRowsBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(this)]);
         }
-        if (e.ctrlKey) toggleSelectReq(reqEntry);
+        if (e.ctrlKey) toggleSelectReq(this);
         if (e.button === 0 || fromCheckbox) {
             if (!e.ctrlKey && !e.shiftKey) {
-                if (reqEntry != lastSelectedEntry || sumMask(selectedReqMask) > 1) clearAllReqs();
-                toggleSelectReq(reqEntry);
+                if (this != lastSelectedEntry || sumMask(selectedReqMask) > 1) clearAllReqs();
+                toggleSelectReq(this);
             }
             if (e.shiftKey) {
-                selectRowsBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(reqEntry)]);
+                selectRowsBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(this)]);
             }
         }
-    } else if (event.detail == 2) {
-        openReq(reqEntry);
+    } else if (e.detail == 2) {
+        openReq(this);
     }
 }
 
-function reqCheckboxClick(event, reqEntryCheckbox) {
-    reqEntryCheckbox.checked = !reqEntryCheckbox.checked;
-    reqClick(event, reqEntryCheckbox.nextElementSibling, true);
+function reqCheckboxClick() {
+    this.checked = !this.checked;
+    reqClick.call(this.nextElementSibling, true);
 }
 
 function sumMask(mask) {

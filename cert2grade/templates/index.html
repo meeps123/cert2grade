@@ -128,8 +128,8 @@
             </div>
             {% for req in req_history %}
                 <div class="req_entry_row">
-                    <input type="checkbox" onclick="reqCheckboxClick(event, this, true)" unchecked>
-                    <div class="req_entry_wrapper" onclick="reqClick(event, this, false)" rowindex="{{ loop.index0 }}">
+                    <input type="checkbox" onclick="reqCheckboxClick.call(this)" unchecked>
+                    <div class="req_entry_wrapper" onclick="reqClick.call(this, false)" rowindex="{{ loop.index0 }}">
                         <div class="req_code">{{ req["code"] }}</div>
                         <div class="req_timestamp">{{ req["timestamp"] }}</div>
                         <div class="req_size">{{ req["size_str"] }}</div>

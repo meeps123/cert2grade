@@ -4,22 +4,22 @@ var allFileEntries = [];
 var selectedFileMask = [];
 var deleteFileBtn;
 
-function handleDocumentKeydownForFiles(event) {
+function handleDocumentKeydownForFiles(reqCode) {
     let e = event || window.event;
     if (e.key == 'Escape') clearAllFiles();
-    if (e.key == 'Delete') deleteFile();
+    if (e.key == 'Delete') deleteFile(reqCode);
 }
 
-function handleDocumentClickForFiles(event) {
+function handleDocumentClickForFiles() {
     let e = event || window.event;
     if (!filePreviewContainer.contains(e.target)) clearAllFiles();
 }
 
-function buildFileEntriesList(classToSearch) {
+function buildFileEntriesList(classToSearch, reqCode) {
     allFileEntries = document.getElementsByClassName(classToSearch);
     selectedFileMask = new Array(allFileEntries.length).fill(false);
     deleteFileBtn = document.getElementById('delete_file_btn');
-    deleteFileBtn.addEventListener('click', deleteFile);
+    deleteFileBtn.addEventListener('click', deleteFile.bind(null, reqCode));
     let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
     for (let i=0; i<checkboxes.length; i++) {
         // set the checkboxes to unchecked
@@ -63,29 +63,29 @@ function selectFilesBetweenIndices(indices) {
     updateDeleteFileBtn();
 }
 
-function fileClick(event, fileEntry, allowOpenFile=false) {
+function fileClick(allowOpenFile=false) {
     let e = event || window.event;
     if (e.detail == 1) {
         if (e.ctrlKey && e.shiftKey) {
-            selectFilesBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(fileEntry)]);
+            selectFilesBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(this)]);
         }
-        if (e.ctrlKey) toggleSelectFile(fileEntry);
+        if (e.ctrlKey) toggleSelectFile(this);
         if (e.button === 0) {
             if (!e.ctrlKey && !e.shiftKey) {
-                if (fileEntry != lastSelectedEntry || sumMask(selectedFileMask) > 1) clearAllFiles();
-                toggleSelectFile(fileEntry);
+                if (this != lastSelectedEntry || sumMask(selectedFileMask) > 1) clearAllFiles();
+                toggleSelectFile(this);
             }
             if (e.shiftKey) {
-                selectFilesBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(fileEntry)]);
+                selectFilesBetweenIndices([rowIndex(lastSelectedEntry), rowIndex(this)]);
             }
         }
-    } else if (event.detail == 2 && allowOpenFile) {
-        openFile(fileEntry);
+    } else if (e.detail == 2 && allowOpenFile) {
+        openFile(this);
     }
 }
 
-function fileCheckboxClick(event, fileEntryCheckbox) {
-    fileEntryCheckbox.checked = !fileEntryCheckbox.checked;
+function fileCheckboxClick() {
+    this.checked = !this.checked;
 }
 
 function sumMask(mask) {
@@ -107,23 +107,32 @@ function openFile(fileEntry) {
     window.location = `${SCRIPT_ROOT}/req/${encodeURIComponent(reqCode)}`;
 }
 
-function deleteFile() {
+function deleteFile(reqCode) {
+    // get all selected files
     selectedFiles = [];
     for (let i=0; i<allFileEntries.length; i++) {
         if (selectedFileMask[i]) {
-            code = allFileEntries[i].firstElementChild.textContent;
-            selectedReqCodes.push(code);
+            selectedFiles.push(indexDropzone.files[i]);
         }
     }
-    // let data = new FormData();
-    // data.append('req_codes', selectedReqCodes.join('|'));
-    // fetch(`${SCRIPT_ROOT}/delete_req`, {
-    //     'method': 'POST',
-    //     'body': data
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (!data['success']) alert(`error deleting ${total} entr${(total == 1) ? 'y' : 'ies'}`);
-    //     window.location = SCRIPT_ROOT;
-    // });
+    
+    // get list of selected filenames
+    selectedFilenames = [];
+    selectedFiles.forEach(file => {
+        selectedFilenames.append(file.name);
+    });
+
+    // delete selected files from the server side
+    let data = new FormData();
+    data.append('req_code', reqCode);
+    data.append('filenames', selectedFilenames);
+    fetch(`${SCRIPT_ROOT}/delete_file`, {
+        'method': 'POST',
+        'body': data
+    })
+    .then(response => response.json())
+    .then(data => {
+        // remove only those files which were successfully deleted on the server side
+        console.log(data);
+    });
 }

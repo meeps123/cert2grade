@@ -38,19 +38,20 @@ function handleDropzone() {
             .then(data => {
                 if (!data['success']) alert('failed to create request');
                 reqCode = data['code'];
-                indexDropzone.options.url = `${SCRIPT_ROOT}/upload/${reqCode}`;
+                indexDropzone.options.url = `${SCRIPT_ROOT}/upload_file/${reqCode}`;
                 indexDropzone.options.autoProcessQueue = true;
                 indexDropzone.processQueue();
+
+                // render the uploading UI once only
+                document.getElementById('index_ui').remove();
+                document.getElementById('upload_ui').classList.toggle('hidden');
+                // detach the event listeners for request selection once only
+                document.removeEventListener('keydown', handleDocumentKeydownForReqs);
+                document.removeEventListener('click', handleDocumentClickForReqs);
+                // attach the new event listeners for file selection once only
+                document.addEventListener('keydown', handleDocumentKeydownForFiles.bind(null, reqCode));
+                document.addEventListener('click', handleDocumentClickForFiles);
             });
-            // render the uploading UI once only
-            document.getElementById('index_ui').remove();
-            document.getElementById('upload_ui').classList.toggle('hidden');
-            // detach the event listeners for request selection once only
-            document.removeEventListener('keydown', handleDocumentKeydownForReqs);
-            document.removeEventListener('click', handleDocumentClickForReqs);
-            // attach the new event listeners for file selection once only
-            document.addEventListener('keydown', handleDocumentKeydownForFiles);
-            document.addEventListener('click', handleDocumentClickForFiles);
         }
 
         // create the BLOB thumbnail of the pdf
@@ -81,7 +82,7 @@ function handleDropzone() {
         }
 
         // rebuild the list of file entries
-        buildFileEntriesList('dz-complete');
+        buildFileEntriesList('dz-complete', reqCode);
 
         // update the request metadata in the database
         totalReqSize = 0;
@@ -90,9 +91,9 @@ function handleDropzone() {
             totalReqSize += indexDropzone.files[i].size;
             // at the same time add the onclick listeners to the file previews to enable selection
             previewElement = indexDropzone.files[i].previewElement;
-            previewElement.addEventListener('click', fileClick.bind(previewElement, event, previewElement));
+            previewElement.addEventListener('click', fileClick.bind(previewElement));
             previewElementCheckbox = previewElement.children[1];
-            previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox, event, previewElementCheckbox));
+            previewElementCheckbox.addEventListener('click', fileCheckboxClick.bind(previewElementCheckbox));
         }
         let modifications = {
             'files': totalReqFiles,
