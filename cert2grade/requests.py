@@ -21,7 +21,7 @@ def create_req():
     req_code = shortuuid.ShortUUID().random(length=6)
     timestamp = datetime.now().timestamp()
     files = -1 # not sure of the number of files yet
-    size = '' # not sure of the full size yet
+    size = 0 # not sure of the full size yet
     end_timestamp = -1 # hasn't started 
     query = 'INSERT INTO requests (user_id, code, start_timestamp, files, size, end_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
     payload = {

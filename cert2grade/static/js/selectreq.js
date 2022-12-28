@@ -15,15 +15,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     reqHistoryDiv = document.getElementById('req_history');
 });
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', handleDocumentKeydownForReqs);
+document.addEventListener('click', handleDocumentClickForReqs);
+
+function handleDocumentKeydownForReqs(event) {
     let e = event || window.event;
     if (e.key == 'Escape') clearAllReqs();
     if (e.key == 'Delete') deleteReq();
-});
-document.addEventListener('click', (event) => {
+}
+
+function handleDocumentClickForReqs(event) {
     let e = event || window.event;
-    if (!reqHistoryDiv.contains(e.target)) clearAllReqs();
-});
+    if (!reqHistoryDiv.contains(e.target)) clearAllReqs();    
+}
 
 function rowIndex(reqEntry) {
     return parseInt(reqEntry.getAttribute('rowindex'));

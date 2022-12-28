@@ -45,6 +45,12 @@ function handleDropzone() {
             // render the uploading UI once only
             document.getElementById('index_ui').remove();
             document.getElementById('upload_ui').classList.toggle('hidden');
+            // detach the event listeners for request selection once only
+            document.removeEventListener('keydown', handleDocumentKeydownForReqs);
+            document.removeEventListener('click', handleDocumentClickForReqs);
+            // attach the new event listeners for file selection once only
+            document.addEventListener('keydown', handleDocumentKeydownForFiles);
+            document.addEventListener('click', handleDocumentClickForFiles);
         }
 
         // create the BLOB thumbnail of the pdf
@@ -76,8 +82,6 @@ function handleDropzone() {
 
         // rebuild the list of file entries
         buildFileEntriesList('dz-complete');
-        allFileEntries = document.getElementsByClassName('dz-complete');
-        selectedFileMask = new Array(allFileEntries.length).fill(false);
 
         // update the request metadata in the database
         totalReqSize = 0;

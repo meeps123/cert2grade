@@ -1,19 +1,19 @@
-var reqHistoryDiv;
+var filePreviewContainer;
 var lastSelectedEntry;
-var allFileEntries; 
-var selectedFileMask;
+var allFileEntries = []; 
+var selectedFileMask = [];
 var deleteFileBtn;
 
-document.onselectstart = () => {return false}
-// document.addEventListener('keydown', (event) => {
-//     let e = event || window.event;
-//     if (e.key == 'Escape') clearAllFiles();
-//     if (e.key == 'Delete') deleteFile();
-// });
-// document.addEventListener('click', (event) => {
-//     let e = event || window.event;
-//     if (!reqHistoryDiv.contains(e.target)) clearAllFiles();
-// });
+function handleDocumentKeydownForFiles(event) {
+    let e = event || window.event;
+    if (e.key == 'Escape') clearAllFiles();
+    if (e.key == 'Delete') deleteFile();
+}
+
+function handleDocumentClickForFiles(event) {
+    let e = event || window.event;
+    if (!filePreviewContainer.contains(e.target)) clearAllFiles();
+}
 
 function buildFileEntriesList(classToSearch) {
     allFileEntries = document.getElementsByClassName(classToSearch);
@@ -22,45 +22,49 @@ function buildFileEntriesList(classToSearch) {
     deleteFileBtn.addEventListener('click', deleteFile);
     let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
     for (let i=0; i<checkboxes.length; i++) {
+        // set the checkboxes to unchecked
         checkboxes[i].checked = false;
     }
-    reqHistoryDiv = document.getElementById('req_history');
+    for (let i=0; i<allFileEntries.length; i++) {
+        // set the row index attribute of each file entry
+        allFileEntries[i].setAttribute('rowindex', i);
+    }
+    filePreviewContainer = document.getElementById('index_dropzone');
 }
 
-function rowIndex(reqEntry) {
-    return parseInt(reqEntry.getAttribute('rowindex'));
+function rowIndex(fileEntry) {
+    return parseInt(fileEntry.getAttribute('rowindex'));
 }
 
-function toggleSelectFile(reqEntry) {
-    reqEntry.previousElementSibling.checked = !reqEntry.previousElementSibling.checked;
-    reqEntry.parentElement.classList.toggle('req_entry_row_selected');
-    selectedFileMask[rowIndex(reqEntry)] = !selectedFileMask[rowIndex(reqEntry)];
-    lastSelectedEntry = reqEntry;
-    updatedeleteFileBtn();
+function toggleSelectFile(fileEntry) {
+    fileEntry.children[1].checked = !fileEntry.children[1].checked;
+    fileEntry.classList.toggle('file_entry_selected');
+    selectedFileMask[rowIndex(fileEntry)] = !selectedFileMask[rowIndex(fileEntry)];
+    lastSelectedEntry = fileEntry;
+    updateDeleteFileBtn();
 }
 
 function clearAllFiles() {
     for (let i=0; i<allFileEntries.length; i++) {
-        allFileEntries[i].parentElement.classList.remove('req_entry_row_selected');
-        allFileEntries[i].previousElementSibling.checked = false;
+        allFileEntries[i].classList.remove('file_entry_selected');
+        allFileEntries[i].children[1].checked = false;
     }
     selectedFileMask.fill(false);
-    updatedeleteFileBtn();
+    updateDeleteFileBtn();
 }
 
 function selectFilesBetweenIndices(indices) {
     indices.sort((a, b) => {return a - b});
     selectedFileMask.fill(true, indices[0], indices[1]+1);
     for (let i=indices[0]; i<=indices[1]; i++) {
-        allFileEntries[i].parentElement.classList.add('req_entry_row_selected');
-        allFileEntries[i].previousElementSibling.checked = true;
+        allFileEntries[i].classList.add('file_entry_selected');
+        allFileEntries[i].children[1].checked = true;
     }
-    updatedeleteFileBtn();
+    updateDeleteFileBtn();
 }
 
 function fileClick(event, fileEntry, allowOpenFile=false) {
     let e = event || window.event;
-    console.log(e);
     console.log(fileEntry);
     if (e.detail == 1) {
         if (e.ctrlKey && e.shiftKey) {
@@ -85,7 +89,7 @@ function sumMask(mask) {
     return mask.reduce((a,b)=>a+b,0)
 }
 
-function updatedeleteFileBtn() {
+function updateDeleteFileBtn() {
     total = sumMask(selectedFileMask);
     if (total) {
         deleteFileBtn.classList.remove('hidden');
@@ -95,28 +99,28 @@ function updatedeleteFileBtn() {
     }
 }
 
-function openFile(reqEntry) {
-    reqCode = reqEntry.firstElementChild.textContent;
+function openFile(fileEntry) {
+    reqCode = fileEntry.firstElementChild.textContent;
     window.location = `${SCRIPT_ROOT}/req/${encodeURIComponent(reqCode)}`;
 }
 
 function deleteFile() {
-    selectedReqCodes = [];
-    for (let i=0; i<allFileEntries.length; i++) {
-        if (selectedFileMask[i]) {
-            code = allFileEntries[i].firstElementChild.textContent;
-            selectedReqCodes.push(code);
-        }
-    }
-    let data = new FormData();
-    data.append('req_codes', selectedReqCodes.join('|'));
-    fetch(`${SCRIPT_ROOT}/delete_req`, {
-        'method': 'POST',
-        'body': data
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data['success']) alert(`error deleting ${total} entr${(total == 1) ? 'y' : 'ies'}`);
-        window.location = SCRIPT_ROOT;
-    });
+    // selectedReqCodes = [];
+    // for (let i=0; i<allFileEntries.length; i++) {
+    //     if (selectedFileMask[i]) {
+    //         code = allFileEntries[i].firstElementChild.textContent;
+    //         selectedReqCodes.push(code);
+    //     }
+    // }
+    // let data = new FormData();
+    // data.append('req_codes', selectedReqCodes.join('|'));
+    // fetch(`${SCRIPT_ROOT}/delete_req`, {
+    //     'method': 'POST',
+    //     'body': data
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     if (!data['success']) alert(`error deleting ${total} entr${(total == 1) ? 'y' : 'ies'}`);
+    //     window.location = SCRIPT_ROOT;
+    // });
 }
