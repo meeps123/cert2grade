@@ -9,7 +9,7 @@ function readFileAsArrayBufferAsync(file) {
     });
 }
 
-async function getThumbnail(file) {
+async function createThumbnail(file) {
     let contentBuffer = await readFileAsArrayBufferAsync(file);
     const loadingTask = pdfjsLib.getDocument(contentBuffer);
     const pdf = await loadingTask.promise;
@@ -35,3 +35,18 @@ async function getThumbnail(file) {
     await page.render(renderContext).promise;
     return await new Promise (resolve => canvas.toBlob(resolve));
 }
+
+async function getThumbnail(filename) {
+    return filename;
+}
+
+const THUMBNAIL_OBSERVER = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            (async (thumbnail) => {
+                filename = thumbnail.parentElement.firstElementChild.firstElementChild.textContent;
+                console.log(await getThumbnail(filename));
+            })(entry.target); 
+        }
+    })
+})

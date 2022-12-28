@@ -62,7 +62,7 @@ function handleDropzone() {
         // create the BLOB thumbnail of the pdf
         // upload the thumbnail to the server
         (async () => {
-            blob = await getThumbnail(f);
+            blob = await createThumbnail(f);
             indexDropzone.emit('thumbnail', f, URL.createObjectURL(blob));
             thumbnail_file = new File([blob], `${f.name.split('.')[0]}_thumbnail.png`, {
                 type: 'image/png'

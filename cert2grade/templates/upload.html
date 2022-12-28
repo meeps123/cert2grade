@@ -11,28 +11,48 @@
         right: 0px;
         bottom: 0px;
     }
+    .file_entry_selected {
+        background-color: #D0DBF8;
+    }
+    .dropzone {
+        background-color: cyan;
+        padding: 50px;
+        text-align: center;
+    }
+    .dz-preview {
+        border: 1px solid blue;
+    }
+    .dz-preview:hover {
+        background-color: #D0DBF8;
+    }
 </style>
 {% endblock %}
 
 {% block specific_scripts %}
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pdf.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ url_for('static', filename='js/pdf.worker.min.js') }}";
     const REQ_CODE = '{{ req_code }}';
     var existing_files = {{ existing_files|tojson|safe }};
     Dropzone.autoDiscover = false;
 </script>
+<script src="{{ url_for('static', filename='js/thumbnail.js') }}"></script>
+<script src="{{ url_for('static', filename='js/selectfile.js') }}"></script>
 <script src="{{ url_for('static', filename='js/upload/file.js') }}"></script>    
 {% endblock %}
 
 {% block content %}
     <span id="req_code" class="req_code_display">{{ req_code }}</span>
     <div class="header_with_btn">
-        <h1>uploading X files (<span id="total_upload_progress">X</span>%)</h1>
+        <h1 id="overall_upload_status">uploaded</h1>
         <button id="abort_upload">abort</button>
         <button id="start_churn" class="hidden">churn</button>
+        <button id="delete_file_btn" class="hidden">delete</button>
     </div>
     <div id="upload_dropzone" class="dropzone">
+        <div class="dz-message"></div>
     </div>
     <div id="preview_template" class="hidden">
         <div class="dz-preview dz-file-preview">
@@ -40,7 +60,7 @@
                 <span data-dz-name></span>
             </div>
             <input type="checkbox" unchecked>
-            <img src="https://picsum.photos/seed/picsum/200" data-dz-thumbnail />
+            <img data-dz-thumbnail />
             <div class="dz-progress">
                 <span class="dz-upload" data-dz-uploadprogress></span>
                 <div id="progress_text">

@@ -16,11 +16,19 @@ function handleDropzone() {
         uploadMultiple: false,
     });
 
+    // update the upload status
+    document.getElementById('overall_upload_status').textContent = `uploaded ${existing_files.length} file${existing_files.length == 1 ? '' : 's'}`;
+
+   // init lazy loading
+    uploadDropzone.on('success', (f) => {
+        console.log(f.previewElement);
+        THUMBNAIL_OBSERVER.observe(f.previewElement.getElementsByTagName('img')[0])
+    })
+
     // append the existing files to the dropzone 
     for (let i=0; i<existing_files.length; i++) {
         let f = existing_files[i];
         uploadDropzone.emit('addedfile', f);
-        // uploadDropzone.emit('thumbnail', f, build the blob url)
         uploadDropzone.emit('success', f);
     }
 }
