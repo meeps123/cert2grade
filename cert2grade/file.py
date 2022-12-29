@@ -77,7 +77,7 @@ def upload_file(req_code):
                     f.write(c.read())
             shutil.rmtree(chunk_save_dir)
         del chunks[request.form['dzuuid']]
-        db.execute(query, (request_id, filename, int(request.form['dztotalfilesize']), 0))
+        db.execute(query, (req_id, filename, int(request.form['dztotalfilesize']), 0))
         db.commit()
     return 'chunk_file_upload_successful'
 
@@ -115,6 +115,19 @@ def delete_file():
         if affectedRows == 0: raise Exception
     except Exception as e:
         print(delete_file_query)
+        print(e)
+        success = False
+        return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
+
+    # execute the filesystem delete
+    try:
+        for filename in filenames:
+            filepath = os.path.join(current_app.instance_path, 'files', req_code, filename)
+            thumbnail_filename = f"{filename.split('.')[0]}_thumbnail.png"
+            thumbnail_path = os.path.join(current_app.instance_path, 'files', req_code, thumbnail_filename)
+            os.remove(filepath)
+            os.remove(thumbnail_path)
+    except Exception as e:
         print(e)
         success = False
 

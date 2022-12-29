@@ -75,6 +75,12 @@ def show_req(req_code):
             existing_files.append({
                 'name': file['filename'],
                 'size': file['size'],
+                'accepted': True,
+                'processing': True,
+                'status': 'success',
+                'upload': {
+                    'progress': 100
+                }
             })
         print(existing_files)
         return render_template('upload.html', req_code=code, existing_files=existing_files)

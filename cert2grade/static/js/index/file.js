@@ -1,4 +1,4 @@
-var indexDropzone;
+var dropzone;
 
 document.addEventListener('DOMContentLoaded', handleDropzone);
 
@@ -6,7 +6,7 @@ function handleDropzone() {
     let reqCode;
     let reqCodeCreated = false;
     let churnBtnShown = false;
-    indexDropzone = new Dropzone('div#index_dropzone', {
+    dropzone = new Dropzone('div#index_dropzone', {
         url: `${SCRIPT_ROOT}/upload/`, // we will add the request code later
         clickable: true,
         chunking: true,
@@ -18,7 +18,7 @@ function handleDropzone() {
         previewTemplate: document.getElementById('preview_template').innerHTML,
         uploadMultiple: false,
     });
-    indexDropzone.on('addedfile', function(f) {
+    dropzone.on('addedfile', function(f) {
         // This gets run every time a file is added to the dropzone
     
         // hide the churn button and show the abort button
@@ -41,9 +41,9 @@ function handleDropzone() {
             .then(data => {
                 if (!data['success']) alert('failed to create request');
                 reqCode = data['code'];
-                indexDropzone.options.url = `${SCRIPT_ROOT}/upload_file/${reqCode}`;
-                indexDropzone.options.autoProcessQueue = true;
-                indexDropzone.processQueue();
+                dropzone.options.url = `${SCRIPT_ROOT}/upload_file/${reqCode}`;
+                dropzone.options.autoProcessQueue = true;
+                dropzone.processQueue();
                 // attach the new event listeners for file selection once only
                 document.addEventListener('keydown', handleDocumentKeydownForFiles.bind(null, reqCode));
                 document.addEventListener('click', handleDocumentClickForFiles);
@@ -64,7 +64,7 @@ function handleDropzone() {
         (async () => {
             blob = await createThumbnail(f);
             dataURL = URL.createObjectURL(blob);
-            indexDropzone.emit('thumbnail', f, dataURL);
+            dropzone.emit('thumbnail', f, dataURL);
             thumbnail_file = new File([blob], `${f.name.split('.')[0]}_thumbnail.png`, {
                 type: 'image/png'
             });
@@ -76,7 +76,7 @@ function handleDropzone() {
             });
         })();
     });
-    indexDropzone.on('queuecomplete', () => {
+    dropzone.on('queuecomplete', () => {
         // Run every time after the entire queue is done
         if (!churnBtnShown) {
             churnBtnShown = true;
@@ -88,15 +88,15 @@ function handleDropzone() {
         buildFileEntriesList('dz-complete', reqCode);
 
         // update the header to show how mamy files uploaded
-        document.getElementById('overall_upload_status').textContent = `uploaded ${indexDropzone.files.length} file${indexDropzone.files.length == 1 ? '' : 's'}`;
+        document.getElementById('overall_upload_status').textContent = `uploaded ${dropzone.files.length} file${dropzone.files.length == 1 ? '' : 's'}`;
 
         // update the request metadata in the database
         totalReqSize = 0;
-        totalReqFiles = indexDropzone.files.length;
+        totalReqFiles = dropzone.files.length;
         for (let i=0; i<totalReqFiles; i++) {
-            totalReqSize += indexDropzone.files[i].size;
+            totalReqSize += dropzone.files[i].size;
             // at the same time add the onclick listeners to the file previews to enable selection
-            previewElement = indexDropzone.files[i].previewElement;
+            previewElement = dropzone.files[i].previewElement;
             hasListener = !!previewElement.getAttribute('data-listener-attached'); 
             if (!hasListener) {
                 previewElement.addEventListener('click', fileClick.bind(previewElement, false));

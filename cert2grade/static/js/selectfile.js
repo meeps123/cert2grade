@@ -29,7 +29,7 @@ function buildFileEntriesList(classToSearch, reqCode) {
         // set the row index attribute of each file entry
         allFileEntries[i].setAttribute('rowindex', i);
     }
-    filePreviewContainer = document.getElementById('index_dropzone');
+    filePreviewContainer = document.querySelector('.dropzone');
 }
 
 function rowIndex(fileEntry) {
@@ -113,7 +113,7 @@ function deleteFile(reqCode) {
     selectedFiles = [];
     for (let i=0; i<allFileEntries.length; i++) {
         if (selectedFileMask[i]) {
-            selectedFiles.push(indexDropzone.files[i]);
+            selectedFiles.push(dropzone.files[i]);
         }
     }
     
@@ -135,8 +135,8 @@ function deleteFile(reqCode) {
     .then(data => {
         // remove only those files which were successfully deleted on the server side
         if (data['success']) {
-            selectedFiles.forEach(file => indexDropzone.removeFile(file));
-            indexDropzone.emit('queuecomplete');
+            selectedFiles.forEach(file => dropzone.removeFile(file));
+            dropzone.emit('queuecomplete');
             updateDeleteFileBtn();
         }
     });
