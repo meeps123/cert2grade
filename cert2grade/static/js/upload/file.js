@@ -20,7 +20,7 @@ function handleDropzone() {
     });
 
     // update the upload status
-    document.getElementById('overall_upload_status').textContent = `uploaded ${existing_files.length} file${existing_files.length == 1 ? '' : 's'}`;
+    document.getElementById('overall_upload_status').textContent = `uploaded ${EXISTING_FILES.length} file${EXISTING_FILES.length == 1 ? '' : 's'}`;
 
    // init lazy loading just for the files that exist
     dropzone.on('success', (f) => {
@@ -28,17 +28,19 @@ function handleDropzone() {
     })
 
     // append the existing files to the dropzone 
-    for (let i=0; i<existing_files.length; i++) {
-        let f = existing_files[i];
+    for (let i=0; i<EXISTING_FILES.length; i++) {
+        let f = EXISTING_FILES[i];
         dropzone.emit('addedfile', f);
         dropzone.emit('success', f);
         dropzone.emit('complete', f);
         dropzone.emit('uploadprogress', f, 100);
         dropzone.files.push(f);
+        f.previewElement.getElementsByClassName('uploaded_size')[0].textContent = Dropzone.prototype.filesize(f['size']);
     }
 
-    // detach lazy loading and arm the dropzone for uploads
+    // detach old event listeners and arm the dropzone for uploads
     dropzone.off('success');
+    dropzone.off('uploadprogress');
     dropzone.options.autoProcessQueue = true;
 
     dropzone.on('addedfile', function(f) {
@@ -68,6 +70,13 @@ function handleDropzone() {
                 body: data
             });
         })();
+    });
+    
+    dropzone.on('uploadprogress', (file, progress, bytesSent) => {
+        uploadedSizeSpan = file.previewElement.getElementsByClassName('uploaded_size')[0];
+        // update the uploaded size
+        uploadedSizeSpan.textContent = Dropzone.prototype.filesize(bytesSent - 847);
+        // 847 bytes is extra bytes of the metadata that got sent
     });
 
     dropzone.on('queuecomplete', () => {

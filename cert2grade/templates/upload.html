@@ -31,12 +31,14 @@
 {% block specific_scripts %}
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pdf.js') }}"></script>
+<script src="{{ url_for('static', filename='js/utils.js') }}"></script>
 <script>
     const SCRIPT_ROOT = {{ request.script_root|tojson }};
     pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ url_for('static', filename='js/pdf.worker.min.js') }}";
     const REQ_CODE = '{{ req_code }}';
-    var existing_files = {{ existing_files|tojson|safe }};
+    const EXISTING_FILES = {{ existing_files|tojson|safe }};
     Dropzone.autoDiscover = false;
+    Dropzone.prototype.filesize = CONVERT_SIZE;
 </script>
 <script src="{{ url_for('static', filename='js/thumbnail.js') }}"></script>
 <script src="{{ url_for('static', filename='js/selectfile.js') }}"></script>
@@ -64,7 +66,7 @@
             <div class="dz-progress">
                 <span class="dz-upload" data-dz-uploadprogress></span>
                 <div id="progress_text">
-                    <span id="uploaded_size">0.00MB</span>
+                    <span class="uploaded_size">0.00MB</span>
                     /
                     <span class="dz-size" data-dz-size></span>
                 </div>

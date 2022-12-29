@@ -117,4 +117,11 @@ function handleDropzone() {
             'body': data
         })
     });
+    dropzone.on('uploadprogress', (file, progress, bytesSent) => {
+        uploadedSizeSpan = file.previewElement.getElementsByClassName('uploaded_size')[0];
+        // update the uploaded size
+        uploadedSizeSpan.textContent = Dropzone.prototype.filesize(bytesSent - 847);
+        // 847 bytes is extra bytes of the metadata that got sent
+    });
+
 }
