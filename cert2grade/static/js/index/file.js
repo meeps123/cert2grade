@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', handleDropzone);
 function handleDropzone() {
     filePreviewContainer = document.querySelector('.dropzone');
     deleteFileBtn = document.getElementById('delete_file_btn');
+    
     let reqCode;
     let reqCodeCreated = false;
     let churnBtnShown = false;
+    
     dropzone = new Dropzone('div#index_dropzone', {
         url: `${SCRIPT_ROOT}/upload/`, // we will add the request code later
         clickable: true,

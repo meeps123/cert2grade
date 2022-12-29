@@ -5,7 +5,11 @@ document.addEventListener('keydown', handleDocumentKeydownForFiles.bind(null, RE
 document.addEventListener('click', handleDocumentClickForFiles);
 
 function handleDropzone() {
+    filePreviewContainer = document.querySelector('.dropzone');
+    deleteFileBtn = document.getElementById('delete_file_btn');
+
     let churnBtnShown = false;
+    
     dropzone = new Dropzone('div#upload_dropzone', {
         url: `${SCRIPT_ROOT}/upload_file/${REQ_CODE}`,
         clickable: true,
@@ -117,8 +121,73 @@ function handleDropzone() {
             'body': data
         })
     });
+
+    // ready the abort button
+    abortUploadBtn = document.getElementById('abort_upload'); 
+    abortUploadBtn.addEventListener('click', abortUpload);
 }
 
 function observeThumbnail(f) {
     THUMBNAIL_OBSERVER.observe(f.previewElement.getElementsByTagName('img')[0]);
+}
+
+function abortUpload() {
+    let uploadingFiles = dropzone.getUploadingFiles(); 
+    let uploadingFilenames = [];
+    // first remove from the UI
+    uploadingFiles.forEach(uploadingFile => {
+        dropzone.removeFile(uploadingFile);
+        uploadingFilenames.push(uploadingFile.name);
+    });
+
+    // then remove the aborted files from the server side
+    function deleteAbortedFiles(filenames, counter) {
+        if (counter > 3) return;
+        let data = new FormData();
+        data.append('req_code', REQ_CODE);
+        data.append('filenames', JSON.stringify(filenames));
+        fetch(`${SCRIPT_ROOT}/delete_file`, {
+            'method': 'POST',
+            'body': data
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            for (const [filename, results] of Object.entries(data)) {
+                let dbResult = results['database_delete_status'];
+                let fileResult = results['file_delete_status'];
+                let thumbnailResult = results['thumbnail_delete_status'];
+                let redo = false;
+                let delay = 0;
+                if (dbResult == 'success' && (fileResult == 'pdf_not_in_filesystem' || thumbnailResult == 'thumbnail_not_in_filesystem')) {
+                    // an entry in the db was deleted but somehow couldn't find the pdf or the thumbnail
+                    // this is a sign that the upload of the pdf and the thumbnail is still in progress
+                    redo = true;
+                    delay = 1000;
+                }
+                if (fileResult == 'success' && thumbnailResult == 'thumbnail_not_in_filesystem') {
+                    // the pdf was deleted but couldn't find the thumbnail
+                    // highly likely that thumbnail upload is still in progress
+                    redo = true;
+                    delay = 1000;
+                }
+                if (dbResult == 'entry_not_in_db' && (thumbnailResult == 'thumbnail_not_in_filesystem' && fileResult == 'pdf_not_in_filesystem')) {
+                    // everything cannot be found
+                    // either that really everything has been deleted
+                    // or that the abort managed to stop the pdf upload and the writing to db, but not the upload of thumbnail
+                    redo = true;
+                }
+                if (dbResult == 'entry_not_in_db' && (fileResult == 'success' || thumbnailResult == 'success')) {
+                    // managed to delete pdf or thumbnail, but couldnt find in db
+                    // maybe the deletion occurred halfway between writing of file and writing of db entry
+                    // retry to be sure
+                    redo = true; 
+                }
+                
+                if (redo) setTimeout(deleteAbortedFiles.bind(null, [filename], counter+1), delay);
+            }
+        });
+    }
+
+    deleteAbortedFiles(uploadingFilenames, 0);
 }
