@@ -33,12 +33,42 @@ function handleDropzone() {
         dropzone.emit('addedfile', f);
         dropzone.emit('success', f);
         dropzone.emit('complete', f);
+        dropzone.emit('uploadprogress', f, 100);
         dropzone.files.push(f);
     }
 
     // detach lazy loading and arm the dropzone for uploads
     dropzone.off('success');
     dropzone.options.autoProcessQueue = true;
+
+    dropzone.on('addedfile', function(f) {
+        // hide the churn button and show the abort button
+        if (churnBtnShown) {
+            churnBtnShown = false;
+            document.getElementById('abort_upload').classList.toggle('hidden');
+            document.getElementById('start_churn').classList.toggle('hidden');
+        }
+
+        // set the upload status to uploading...
+        document.getElementById('overall_upload_status').textContent = 'uploading...';
+
+        // create the BLOB thumbnail of the pdf
+        // upload the thumbnail to the server
+        (async () => {
+            blob = await createThumbnail(f);
+            dataURL = URL.createObjectURL(blob);
+            dropzone.emit('thumbnail', f, dataURL);
+            thumbnail_file = new File([blob], `${f.name.split('.')[0]}_thumbnail.png`, {
+                type: 'image/png'
+            });
+            let data = new FormData();
+            data.append('file', thumbnail_file);       
+            fetch(`${SCRIPT_ROOT}/upload_thumbnail/${REQ_CODE}`, {
+                method: 'POST',
+                body: data
+            });
+        })();
+    });
 
     dropzone.on('queuecomplete', () => {
         // Run every time after the entire queue is done
