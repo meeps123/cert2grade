@@ -23,9 +23,7 @@ function handleDropzone() {
     document.getElementById('overall_upload_status').textContent = `uploaded ${EXISTING_FILES.length} file${EXISTING_FILES.length == 1 ? '' : 's'}`;
 
    // init lazy loading just for the files that exist
-    dropzone.on('success', (f) => {
-        THUMBNAIL_OBSERVER.observe(f.previewElement.getElementsByTagName('img')[0])
-    })
+    dropzone.on('success', observeThumbnail);
 
     // append the existing files to the dropzone 
     for (let i=0; i<EXISTING_FILES.length; i++) {
@@ -39,8 +37,7 @@ function handleDropzone() {
     }
 
     // detach old event listeners and arm the dropzone for uploads
-    dropzone.off('success');
-    dropzone.off('uploadprogress');
+    dropzone.off('success', observeThumbnail);
     dropzone.options.autoProcessQueue = true;
 
     dropzone.on('addedfile', function(f) {
@@ -120,4 +117,8 @@ function handleDropzone() {
             'body': data
         })
     });
+}
+
+function observeThumbnail(f) {
+    THUMBNAIL_OBSERVER.observe(f.previewElement.getElementsByTagName('img')[0]);
 }
