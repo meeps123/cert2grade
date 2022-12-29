@@ -36,8 +36,16 @@ async function createThumbnail(file) {
     return await new Promise (resolve => canvas.toBlob(resolve));
 }
 
-async function getThumbnail(filename) {
-    return filename;
+async function downloadThumbnail(filename) {
+    let data = new FormData();
+    data.append('req_code', REQ_CODE);
+    data.append('filename', filename);
+    const response = await fetch(`${SCRIPT_ROOT}/download_thumbnail`, {
+        'method': 'POST',
+        'body': data
+    });
+    const responseData = await response.json();
+    return responseData['data_url'];
 }
 
 const THUMBNAIL_OBSERVER = new IntersectionObserver((entries, observer) => {
@@ -45,7 +53,7 @@ const THUMBNAIL_OBSERVER = new IntersectionObserver((entries, observer) => {
         if (entry.isIntersecting) {
             (async (thumbnail) => {
                 filename = thumbnail.parentElement.firstElementChild.firstElementChild.textContent;
-                console.log(await getThumbnail(filename));
+                thumbnail.src = await downloadThumbnail(filename);
             })(entry.target); 
         }
     })

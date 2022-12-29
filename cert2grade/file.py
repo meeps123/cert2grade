@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import base64
 from collections import defaultdict
 from threading import Lock
 from flask import (
@@ -80,37 +81,6 @@ def upload_file(req_code):
         db.commit()
     return 'chunk_file_upload_successful'
 
-@bp.post('/upload_thumbnail/<req_code>')
-@login_required
-def upload_thumbnail(req_code):
-    db = get_db()
-    
-    # get the req code
-    req_code = escape(req_code)
-
-    # get the thumbnail
-    thumbnail = request.files['file']
-    if not thumbnail:
-        abort(400) # no thumbnail provided
-
-    # save the thumbnail
-    thumbnail_path = os.path.join(
-        current_app.instance_path, 
-        'files', 
-        req_code, 
-        secure_filename(thumbnail.filename)
-    )
-    with open(thumbnail_path, 'wb') as f:
-        thumbnail.save(f)
-
-    # update the db to indicate that the thumbnail is present
-    corr_filename = secure_filename(thumbnail.filename).split('_thumbnail.png')[0] + '.pdf'
-    query = 'UPDATE files SET has_thumbnail = 1 WHERE filename = ?'
-    db.execute(query, (corr_filename,))
-    db.commit()
-
-    return 'thumbnail saved successfully'
-    
 @bp.post('/delete_file/')
 @login_required
 def delete_file():
@@ -149,3 +119,74 @@ def delete_file():
         success = False
 
     return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
+
+@bp.post('/upload_thumbnail/<req_code>')
+@login_required
+def upload_thumbnail(req_code):
+    db = get_db()
+    
+    # get the req code
+    req_code = escape(req_code)
+
+    # get the thumbnail
+    thumbnail = request.files['file']
+    if not thumbnail:
+        abort(400) # no thumbnail provided
+
+    # save the thumbnail
+    thumbnail_path = os.path.join(
+        current_app.instance_path, 
+        'files', 
+        req_code, 
+        secure_filename(thumbnail.filename)
+    )
+    with open(thumbnail_path, 'wb') as f:
+        thumbnail.save(f)
+
+    # update the db to indicate that the thumbnail is present
+    corr_filename = secure_filename(thumbnail.filename).split('_thumbnail.png')[0] + '.pdf'
+    query = 'UPDATE files SET has_thumbnail = 1 WHERE filename = ?'
+    db.execute(query, (corr_filename,))
+    db.commit()
+
+    return 'thumbnail saved successfully'
+    
+@bp.post('/download_thumbnail')
+@login_required
+def download_thumbnail():
+    db = get_db()
+
+    # get the data that was sent over
+    req_code = request.form['req_code']
+    filename = request.form['filename']
+
+    # get the request id for the code
+    try:
+        req_id = db.execute(
+            'SELECT * FROM requests WHERE user_id = ? AND code = ?',
+            (session['user_id'], req_code)
+        ).fetchone()['request_id']
+    except:
+        # failed to get the request id
+        abort(404)
+
+    # attempt to read the thumbnail for the specified filename
+    thumbnail_filename = secure_filename(f"{filename.split('.')[0]}_thumbnail.png")
+    thumbnail_filepath = os.path.join(current_app.instance_path, 'files', req_code, thumbnail_filename)
+
+    success = True
+    data_url = 'data:image/png;base64,'
+    try:
+        with open(thumbnail_filepath, 'rb') as f:
+            thumbnail_data = f.read()
+            data_url += base64.b64encode(thumbnail_data).decode()
+    except Exception as e:
+        print(thumbnail_filepath)
+        print(e)
+        success = False
+    
+    payload = {
+        'success': success,
+        'data_url': data_url
+    }
+    return json.dumps(payload), 200, {'ContentType': 'application/json'}

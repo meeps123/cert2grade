@@ -63,7 +63,8 @@ function handleDropzone() {
         // upload the thumbnail to the server
         (async () => {
             blob = await createThumbnail(f);
-            indexDropzone.emit('thumbnail', f, URL.createObjectURL(blob));
+            dataURL = URL.createObjectURL(blob);
+            indexDropzone.emit('thumbnail', f, dataURL);
             thumbnail_file = new File([blob], `${f.name.split('.')[0]}_thumbnail.png`, {
                 type: 'image/png'
             });
@@ -72,7 +73,7 @@ function handleDropzone() {
             fetch(`${SCRIPT_ROOT}/upload_thumbnail/${reqCode}`, {
                 method: 'POST',
                 body: data
-            })
+            });
         })();
     });
     indexDropzone.on('queuecomplete', () => {

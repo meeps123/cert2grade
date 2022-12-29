@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', handleDropzone);
 
 function handleDropzone() {
     uploadDropzone = new Dropzone('div#upload_dropzone', {
-        url: `${REQ_CODE}/upload/`,
+        url: `${SCRIPT_ROOT}/upload_file/${REQ_CODE}`,
         clickable: true,
         chunking: true,
         forceChunking: true,
@@ -19,9 +19,8 @@ function handleDropzone() {
     // update the upload status
     document.getElementById('overall_upload_status').textContent = `uploaded ${existing_files.length} file${existing_files.length == 1 ? '' : 's'}`;
 
-   // init lazy loading
+   // init lazy loading just for the files that exist
     uploadDropzone.on('success', (f) => {
-        console.log(f.previewElement);
         THUMBNAIL_OBSERVER.observe(f.previewElement.getElementsByTagName('img')[0])
     })
 
@@ -31,4 +30,6 @@ function handleDropzone() {
         uploadDropzone.emit('addedfile', f);
         uploadDropzone.emit('success', f);
     }
+
+
 }
