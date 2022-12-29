@@ -3,6 +3,8 @@ var dropzone;
 document.addEventListener('DOMContentLoaded', handleDropzone);
 
 function handleDropzone() {
+    filePreviewContainer = document.querySelector('.dropzone');
+    deleteFileBtn = document.getElementById('delete_file_btn');
     let reqCode;
     let reqCodeCreated = false;
     let churnBtnShown = false;
@@ -49,6 +51,10 @@ function handleDropzone() {
                 document.addEventListener('click', handleDocumentClickForFiles);
                 // set the req code at the top of page
                 document.getElementById('req_code').textContent = `#${reqCode}`;
+                // attach the event listener for file upload abort
+                abortUploadBtn = document.getElementById('abort_upload'); 
+                abortUploadBtn.classList.remove('hidden');
+                abortUploadBtn.addEventListener('click', abortUpload.bind(abortUploadBtn, reqCode));
             });
             // render the uploading UI once only
             document.getElementById('index_ui').remove();
@@ -123,5 +129,65 @@ function handleDropzone() {
         uploadedSizeSpan.textContent = Dropzone.prototype.filesize(bytesSent - 847);
         // 847 bytes is extra bytes of the metadata that got sent
     });
+}
 
+function abortUpload(reqCode) {
+    let uploadingFiles = dropzone.getUploadingFiles(); 
+    let uploadingFilenames = [];
+    // first remove from the UI
+    uploadingFiles.forEach(uploadingFile => {
+        dropzone.removeFile(uploadingFile);
+        uploadingFilenames.push(uploadingFile.name);
+    });
+
+    // then remove the aborted files from the server side
+    function deleteAbortedFiles(reqCode, filenames, counter) {
+        if (counter > 3) return;
+        let data = new FormData();
+        data.append('req_code', reqCode);
+        data.append('filenames', JSON.stringify(filenames));
+        fetch(`${SCRIPT_ROOT}/delete_file`, {
+            'method': 'POST',
+            'body': data
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            for (const [filename, results] of Object.entries(data)) {
+                let dbResult = results['database_delete_status'];
+                let fileResult = results['file_delete_status'];
+                let thumbnailResult = results['thumbnail_delete_status'];
+                let redo = false;
+                let delay = 0;
+                if (dbResult == 'success' && (fileResult == 'pdf_not_in_filesystem' || thumbnailResult == 'thumbnail_not_in_filesystem')) {
+                    // an entry in the db was deleted but somehow couldn't find the pdf or the thumbnail
+                    // this is a sign that the upload of the pdf and the thumbnail is still in progress
+                    redo = true;
+                    delay = 1000;
+                }
+                if (fileResult == 'success' && thumbnailResult == 'thumbnail_not_in_filesystem') {
+                    // the pdf was deleted but couldn't find the thumbnail
+                    // highly likely that thumbnail upload is still in progress
+                    redo = true;
+                    delay = 1000;
+                }
+                if (dbResult == 'entry_not_in_db' && (thumbnailResult == 'thumbnail_not_in_filesystem' && fileResult == 'pdf_not_in_filesystem')) {
+                    // everything cannot be found
+                    // either that really everything has been deleted
+                    // or that the abort managed to stop the pdf upload and the writing to db, but not the upload of thumbnail
+                    redo = true;
+                }
+                if (dbResult == 'entry_not_in_db' && (fileResult == 'success' || thumbnailResult == 'success')) {
+                    // managed to delete pdf or thumbnail, but couldnt find in db
+                    // maybe the deletion occurred halfway between writing of file and writing of db entry
+                    // retry to be sure
+                    redo = true; 
+                }
+                
+                if (redo) setTimeout(deleteAbortedFiles.bind(null, reqCode, [filename], counter+1), delay);
+            }
+        });
+    }
+
+    deleteAbortedFiles(reqCode, uploadingFilenames, 0);
 }

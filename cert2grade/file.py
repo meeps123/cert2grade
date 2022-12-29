@@ -90,8 +90,6 @@ def delete_file():
     req_code = request.form['req_code']
     filenames = json.loads(request.form['filenames'])
 
-    success = True
-
     # get the request id for the code
     try:
         req_id = db.execute(
@@ -102,36 +100,47 @@ def delete_file():
         # failed to get the request id
         abort(400)
     
-    # form the delete query
-    delete_file_query = 'DELETE FROM files WHERE request_id = ? AND filename IN ('
-    delete_file_query = delete_file_query + '?, ' * len(filenames)
-    delete_file_query = f"{delete_file_query[:-2]})"
+    payload = {}
 
-    # execute the delete query
-    try:
-        db.execute(delete_file_query, (req_id, *filenames))
-        db.commit()
-        affectedRows = db.execute('SELECT changes()').fetchone()[0]
-        if affectedRows == 0: raise Exception
-    except Exception as e:
-        print(delete_file_query)
-        print(e)
-        success = False
-        return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
+    for filename in filenames:
+        payload[filename] = {
+            'database_delete_status': 'success',
+            'file_delete_status': 'success',
+            'thumbnail_delete_status': 'success'
+        }
 
-    # execute the filesystem delete
-    try:
-        for filename in filenames:
-            filepath = os.path.join(current_app.instance_path, 'files', req_code, filename)
-            thumbnail_filename = f"{filename.split('.')[0]}_thumbnail.png"
-            thumbnail_path = os.path.join(current_app.instance_path, 'files', req_code, thumbnail_filename)
-            os.remove(filepath)
+        # first try to delete entry from database
+        try:
+            db.execute('DELETE FROM files WHERE request_id = ? AND filename = ?', (req_id, filename))
+            db.commit()
+            affectedRows = db.execute('SELECT changes()').fetchone()[0]
+            if affectedRows == 0: raise Exception
+        except Exception as e:
+            print(e)
+            payload[filename]['database_delete_status'] = 'entry_not_in_db'
+        
+        # next try to do filesystem delete of the PDF
+        pdf_path = os.path.join(current_app.instance_path, 'files', req_code, filename)
+        try:
+            os.remove(pdf_path)
+        except FileNotFoundError:
+            payload[filename]['file_delete_status'] = 'pdf_not_in_filesystem'
+        except Exception as e:
+            print(e)
+            payload[filename]['file_delete_status'] = str(e)
+
+        # finally try to do filesystem delete of the thumbnail
+        thumbnail_filename = f"{filename.split('.')[0]}_thumbnail.png"
+        thumbnail_path = os.path.join(current_app.instance_path, 'files', req_code, thumbnail_filename)
+        try:
             os.remove(thumbnail_path)
-    except Exception as e:
-        print(e)
-        success = False
+        except FileNotFoundError:
+            payload[filename]['thumbnail_delete_status'] = 'thumbnail_not_in_filesystem'
+        except Exception as e:
+            print(e)
+            payload[filename]['thumbnail_delete_status'] = str(e)
 
-    return json.dumps({'success': success}), 200, {'ContentType': 'application/json'}
+    return json.dumps(payload), 200, {'ContentType': 'application/json'}
 
 @bp.post('/upload_thumbnail/<req_code>')
 @login_required
@@ -146,7 +155,6 @@ def upload_thumbnail(req_code):
     if not thumbnail:
         abort(400) # no thumbnail provided
 
-    # save the thumbnail
     thumbnail_path = os.path.join(
         current_app.instance_path, 
         'files', 
@@ -173,15 +181,14 @@ def download_thumbnail():
     req_code = request.form['req_code']
     filename = request.form['filename']
 
-    # get the request id for the code
+    # reject request if user asks for a req code which is not tied to him
     try:
-        req_id = db.execute(
+        db.execute(
             'SELECT * FROM requests WHERE user_id = ? AND code = ?',
             (session['user_id'], req_code)
         ).fetchone()['request_id']
     except:
-        # failed to get the request id
-        abort(404)
+        abort(401)
 
     # attempt to read the thumbnail for the specified filename
     thumbnail_filename = secure_filename(f"{filename.split('.')[0]}_thumbnail.png")

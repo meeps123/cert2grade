@@ -19,7 +19,11 @@ function buildFileEntriesList(classToSearch, reqCode) {
     allFileEntries = document.getElementsByClassName(classToSearch);
     selectedFileMask = new Array(allFileEntries.length).fill(false);
     deleteFileBtn = document.getElementById('delete_file_btn');
-    deleteFileBtn.addEventListener('click', deleteFile.bind(null, reqCode));
+    hasListener = !!deleteFileBtn.getAttribute('data-listener-attached'); 
+    if (!hasListener) {
+        deleteFileBtn.addEventListener('click', deleteFile.bind(null, reqCode));
+        deleteFileBtn.setAttribute('data-listener-attached', true);
+    }
     let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
     for (let i=0; i<checkboxes.length; i++) {
         // set the checkboxes to unchecked
@@ -29,7 +33,6 @@ function buildFileEntriesList(classToSearch, reqCode) {
         // set the row index attribute of each file entry
         allFileEntries[i].setAttribute('rowindex', i);
     }
-    filePreviewContainer = document.querySelector('.dropzone');
 }
 
 function rowIndex(fileEntry) {
@@ -133,11 +136,18 @@ function deleteFile(reqCode) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log(data);
         // remove only those files which were successfully deleted on the server side
-        if (data['success']) {
-            selectedFiles.forEach(file => dropzone.removeFile(file));
-            dropzone.emit('queuecomplete');
-            updateDeleteFileBtn();
+        for (const [filename, results] of Object.entries(data)) {
+            let dbResult = results['database_delete_status'];
+            let fileResult = results['file_delete_status'];
+            let thumbnailResult = results['thumbnail_delete_status'];
+            if ((dbResult == 'success' && fileResult == 'success') && thumbnailResult == 'success') {
+                correspondingFile = selectedFiles.filter((f) => {return f.name == filename})[0];
+                dropzone.removeFile(correspondingFile);
+            } 
         }
+        dropzone.emit('queuecomplete');
+        updateDeleteFileBtn();
     });
 }
