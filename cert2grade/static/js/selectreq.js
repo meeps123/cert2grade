@@ -14,6 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
         checkboxes[i].checked = false;
     }
     reqHistoryDiv = document.getElementById('req_history');
+    let durationCells = document.querySelectorAll('div.req_duration');
+    durationCells.forEach(durationCell => {
+        switch (durationCell.textContent) {
+            case 'awaiting user input':
+                durationCell.parentElement.classList.add('awaiting');
+                break;
+            case 'in progress':
+                durationCell.parentElement.classList.add('in_progress');
+                break;
+            default:
+                break;
+        }
+    });
 });
 document.addEventListener('keydown', handleDocumentKeydownForReqs);
 document.addEventListener('click', handleDocumentClickForReqs);
